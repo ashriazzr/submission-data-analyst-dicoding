@@ -54,7 +54,7 @@ pip install -r requirements.txt
 
 ```
 cd data-analyst-dicoding/dashboard
-streamlit run dashboard.py
+streamlit run air-pollution-dashboard.py
 ```
 
 Access the dashboard in your web browser at `http://localhost:8501`.
