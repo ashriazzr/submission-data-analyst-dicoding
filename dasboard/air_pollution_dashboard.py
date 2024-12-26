@@ -9,7 +9,6 @@ from io import StringIO
 
 # Set up Streamlit and Seaborn styling
 sns.set(style="whitegrid")
-st.set_option('deprecation.showPyplotGlobalUse', False)
 
 # URL of the dataset stored in GitHub
 folder_url = 'https://raw.githubusercontent.com/ashriazzr/submission-data-analyst-dicoding/main/data/'
