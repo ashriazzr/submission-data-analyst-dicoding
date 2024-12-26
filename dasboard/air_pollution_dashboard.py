@@ -11,7 +11,7 @@ from io import StringIO
 sns.set(style="whitegrid")
 
 # URL of the dataset stored in GitHub
-folder_url = 'https://raw.githubusercontent.com/ashriazzr/submission-data-analyst-dicoding/main/data/'
+folder_url = 'https://raw.githubusercontent.com/ashriazzr/submission-data-analyst-dicoding/main/dashboard/main_data.csv'
 
 # List of files in the GitHub folder (manually providing the file names or using requests)
 file_names = ["data_1.csv", "data_2.csv", "data_3.csv"]  # Add all CSV file names here
