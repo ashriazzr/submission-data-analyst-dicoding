@@ -3,7 +3,7 @@ import pandas as pd
 import os
 
 # Path ke data
-DATA_PATH = "/main_data.csv"
+DATA_PATH = "main_data.csv"
 
 # Cek apakah file ada
 if os.path.exists(DATA_PATH):
