@@ -2,7 +2,7 @@
 
 ![E-Commerce Data Dashboard](dashboard.gif)
 
-[E-Commerce Data Dashboard Streamlit App]()
+[E-Commerce Data Dashboard Streamlit App](https://submission-data-analyst-dicoding.streamlit.app/)
 
 ## Table of Contents
 
