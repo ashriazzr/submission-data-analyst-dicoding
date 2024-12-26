@@ -1,206 +1,96 @@
+import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-import os
-import streamlit as st
-import requests
-from io import StringIO
 
-# Set up Streamlit and Seaborn styling
-sns.set(style="whitegrid")
+# Set Streamlit layout and title
+st.set_page_config(page_title="Air Pollution Analysis", layout="wide")
+st.title("Air Pollution Analysis")
 
-# URL of the dataset stored in GitHub
-folder_url = 'https://raw.githubusercontent.com/ashriazzr/submission-data-analyst-dicoding/main/dashboard/'
+# File Upload
+st.sidebar.header("Upload Dataset")
+uploaded_file = st.sidebar.file_uploader("Upload CSV file", type=["csv"])
 
-# List of files in the GitHub folder (manually providing the file names or using requests)
-file_names = ["data_1.csv", "data_2.csv", "data_3.csv"]  # Add all CSV file names here
+# Function to determine season based on month
+def get_season(month):
+    if month in [12, 1, 2]:
+        return 'Winter'
+    elif month in [3, 4, 5]:
+        return 'Spring'
+    elif month in [6, 7, 8]:
+        return 'Summer'
+    else:
+        return 'Fall'
 
-# Data Wrangling - Gathering Data
-dataframes = []
-for file in file_names:
-    # Correctly construct the file URL
-    file_url = folder_url + file
-    response = requests.get(file_url)
-    file_content = StringIO(response.text)
-    df = pd.read_csv(file_content)
-
-    # Check the file name format and safely extract 'Location'
-    parts = file.split('_')
-    location = parts[2] if len(parts) >= 3 else 'Unknown'  # Default to 'Unknown' if the format doesn't match
-    df['Location'] = location  # Add Location column based on the file name
-    dataframes.append(df)
-
-combined_df = pd.concat(dataframes, ignore_index=True)
-
-# Data cleaning: Drop rows with missing values
-combined_df_cleaned = combined_df.dropna().copy()
-
-# Convert time-related columns to datetime (ensure the columns exist in the DataFrame)
-datetime_cols = ['year', 'month', 'day', 'hour']
-if all(col in combined_df_cleaned.columns for col in datetime_cols):
-    combined_df_cleaned['datetime'] = pd.to_datetime(
-        combined_df_cleaned[datetime_cols].astype(str).agg('-'.join, axis=1)
-    )
+# Display instructions if no file is uploaded
+if uploaded_file is None:
+    st.write("Please upload a CSV file in the sidebar to begin.")
 else:
-    st.error("The expected date columns (year, month, day, hour) are not present in the dataset.")
+    # Load the uploaded file into a dataframe
+    combined_df = pd.read_csv(uploaded_file)
+    
+    # Data Cleaning and Processing
+    st.header("Data Overview")
+    st.write("**Initial Dataset**")
+    st.write(combined_df.head())
+    
+    # Handle missing data
+    st.write("**Null Value Counts**")
+    st.write(combined_df.isnull().sum())
+    combined_df_cleaned = combined_df.dropna().copy()
 
-# Sidebar for date selection
-min_date = combined_df_cleaned["datetime"].min()
-max_date = combined_df_cleaned["datetime"].max()
+    # Add datetime column
+    combined_df_cleaned['datetime'] = pd.to_datetime(combined_df_cleaned[['year', 'month', 'day', 'hour']])
+    combined_df_cleaned['Season'] = combined_df_cleaned['datetime'].dt.month.apply(get_season)
+    
+    # Drop unnecessary columns
+    combined_df_cleaned = combined_df_cleaned.drop(columns=['year', 'month', 'day', 'hour', 'No'])
 
-start_date = st.sidebar.date_input("Start Date", min_date)
-end_date = st.sidebar.date_input("End Date", max_date)
+    st.write("**Cleaned Dataset**")
+    st.write(combined_df_cleaned.head())
+    
+    # EDA Section
+    st.header("Exploratory Data Analysis")
+    
+    # Boxplot of PM2.5 by Location
+    st.subheader("PM2.5 Distribution by Location")
+    plt.figure(figsize=(12, 6))
+    sns.boxplot(x='Location', y='PM2.5', data=combined_df_cleaned)
+    plt.title("PM2.5 Distribution by Location")
+    plt.xticks(rotation=45)
+    st.pyplot(plt)
 
-# Filter data based on the selected date range
-main_df = combined_df_cleaned[(combined_df_cleaned["datetime"] >= pd.to_datetime(start_date)) & 
-                              (combined_df_cleaned["datetime"] <= pd.to_datetime(end_date))]
+    # Average PM2.5 by hour
+    st.subheader("Average PM2.5 by Hour of the Day")
+    hourly_pm25 = combined_df_cleaned.groupby(combined_df_cleaned['datetime'].dt.hour)['PM2.5'].mean()
+    fig, ax = plt.subplots(figsize=(12, 6))
+    hourly_pm25.plot(kind='bar', ax=ax)
+    ax.set_title("Average PM2.5 by Hour")
+    ax.set_xlabel("Hour")
+    ax.set_ylabel("PM2.5")
+    st.pyplot(fig)
 
-# Streamlit Dashboard Setup
-st.title("Air Pollution Data Analysis")
+    # PM2.5 by Season
+    st.subheader("Average PM2.5 by Season")
+    plt.figure(figsize=(12, 6))
+    sns.barplot(x='Season', y='PM2.5', data=combined_df_cleaned, ci=None)
+    plt.title("Average PM2.5 by Season")
+    st.pyplot(plt)
 
-# Business Questions
-st.subheader("Business Questions")
-st.write("1. How does the PM2.5 pollution level change across seasons or times of the day?")
-st.write("2. Which factors are most strongly correlated with the PM2.5 levels?")
+    # Correlation Heatmap
+    st.subheader("Correlation Heatmap")
+    numeric_df = combined_df_cleaned.select_dtypes(include=["float64", "int64"])
+    plt.figure(figsize=(10, 8))
+    sns.heatmap(numeric_df.corr(), annot=True, fmt=".2f", cmap="coolwarm")
+    plt.title("Correlation Heatmap")
+    st.pyplot(plt)
 
-# Analyzing PM2.5 pollution level over time
-st.subheader("PM2.5 Pollution Over Time")
-fig, ax = plt.subplots(figsize=(12, 6))
-sns.lineplot(data=main_df, x="datetime", y="PM2.5", marker="o", linewidth=2, color="#FF7043")
-plt.title("PM2.5 Pollution Over Time")
-ax.tick_params(axis="x", rotation=45)
-ax.tick_params(axis="y", labelsize=15)
-st.pyplot(fig)
-
-# Correlation between factors and PM2.5
-st.subheader("Correlation with PM2.5 Levels")
-correlation_df = main_df[['PM2.5', 'PM10', 'SO2', 'NO2', 'CO', 'O3', 'TEMP', 'PRES', 'DEWP', 'RAIN', 'WSPM']]
-corr_matrix = correlation_df.corr()
-
-fig, ax = plt.subplots(figsize=(12, 6))
-sns.heatmap(corr_matrix, annot=True, cmap="coolwarm", fmt=".2f", linewidths=1, ax=ax)
-plt.title("Correlation Matrix of Factors with PM2.5")
-st.pyplot(fig)
-
-# Average PM2.5 levels by Location
-st.subheader("Average PM2.5 by Location")
-avg_pm25_by_location = main_df.groupby('Location')['PM2.5'].mean().reset_index()
-fig, ax = plt.subplots(figsize=(12, 6))
-sns.barplot(x="Location", y="PM2.5", data=avg_pm25_by_location, palette="viridis")
-plt.title("Average PM2.5 Levels by Location")
-ax.tick_params(axis='x', rotation=45, labelsize=12)
-ax.tick_params(axis='y', labelsize=12)
-st.pyplot(fig)
-
-# Pollution by Hour of the Day
-st.subheader("PM2.5 Pollution by Hour of the Day")
-hourly_pm25 = main_df.groupby('hour')['PM2.5'].mean().reset_index()
-fig, ax = plt.subplots(figsize=(12, 6))
-sns.lineplot(data=hourly_pm25, x='hour', y='PM2.5', marker="o", linewidth=2, color="#66BB6A")
-plt.title("PM2.5 Levels by Hour of the Day")
-ax.tick_params(axis="x", rotation=45)
-ax.tick_params(axis="y", labelsize=15)
-st.pyplot(fig)
-
-# Display additional insights
-st.caption('Copyright (C) ASHRI AULIA AZZAHRA 2024')
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-import os
-import streamlit as st
-import requests
-from io import StringIO
-
-# Set up Streamlit and Seaborn styling
-sns.set(style="whitegrid")
-
-# URL of the dataset stored in GitHub
-folder_url = 'https://raw.githubusercontent.com/ashriazzr/submission-data-analyst-dicoding/main/dashboard/main_data.csv'
-
-# List of files in the GitHub folder (manually providing the file names or using requests)
-file_names = ["data_1.csv", "data_2.csv", "data_3.csv"]  # Add all CSV file names here
-
-# Data Wrangling - Gathering Data
-dataframes = []
-for file in file_names:
-    file_url = folder_url + file
-    response = requests.get(file_url)
-    file_content = StringIO(response.text)
-    df = pd.read_csv(file_content)
-    df['Location'] = file.split('_')[2]  # Add Location column based on the file name
-    dataframes.append(df)
-
-combined_df = pd.concat(dataframes, ignore_index=True)
-
-# Data cleaning: Drop rows with missing values
-combined_df_cleaned = combined_df.dropna().copy()
-
-# Convert time-related columns to datetime
-datetime_cols = ['year', 'month', 'day', 'hour']
-combined_df_cleaned['datetime'] = pd.to_datetime(
-    combined_df_cleaned[['year', 'month', 'day', 'hour']].astype(str).agg('-'.join, axis=1)
-)
-
-# Sidebar for date selection
-min_date = combined_df_cleaned["datetime"].min()
-max_date = combined_df_cleaned["datetime"].max()
-
-start_date = st.sidebar.date_input("Start Date", min_date)
-end_date = st.sidebar.date_input("End Date", max_date)
-
-# Filter data based on the selected date range
-main_df = combined_df_cleaned[(combined_df_cleaned["datetime"] >= pd.to_datetime(start_date)) & 
-                              (combined_df_cleaned["datetime"] <= pd.to_datetime(end_date))]
-
-# Streamlit Dashboard Setup
-st.title("Air Pollution Data Analysis")
-
-# Business Questions
-st.subheader("Business Questions")
-st.write("1. How does the PM2.5 pollution level change across seasons or times of the day?")
-st.write("2. Which factors are most strongly correlated with the PM2.5 levels?")
-
-# Analyzing PM2.5 pollution level over time
-st.subheader("PM2.5 Pollution Over Time")
-fig, ax = plt.subplots(figsize=(12, 6))
-sns.lineplot(data=main_df, x="datetime", y="PM2.5", marker="o", linewidth=2, color="#FF7043")
-plt.title("PM2.5 Pollution Over Time")
-ax.tick_params(axis="x", rotation=45)
-ax.tick_params(axis="y", labelsize=15)
-st.pyplot(fig)
-
-# Correlation between factors and PM2.5
-st.subheader("Correlation with PM2.5 Levels")
-correlation_df = main_df[['PM2.5', 'PM10', 'SO2', 'NO2', 'CO', 'O3', 'TEMP', 'PRES', 'DEWP', 'RAIN', 'WSPM']]
-corr_matrix = correlation_df.corr()
-
-fig, ax = plt.subplots(figsize=(12, 6))
-sns.heatmap(corr_matrix, annot=True, cmap="coolwarm", fmt=".2f", linewidths=1, ax=ax)
-plt.title("Correlation Matrix of Factors with PM2.5")
-st.pyplot(fig)
-
-# Average PM2.5 levels by Location
-st.subheader("Average PM2.5 by Location")
-avg_pm25_by_location = main_df.groupby('Location')['PM2.5'].mean().reset_index()
-fig, ax = plt.subplots(figsize=(12, 6))
-sns.barplot(x="Location", y="PM2.5", data=avg_pm25_by_location, palette="viridis")
-plt.title("Average PM2.5 Levels by Location")
-ax.tick_params(axis='x', rotation=45, labelsize=12)
-ax.tick_params(axis='y', labelsize=12)
-st.pyplot(fig)
-
-# Pollution by Hour of the Day
-st.subheader("PM2.5 Pollution by Hour of the Day")
-hourly_pm25 = main_df.groupby('hour')['PM2.5'].mean().reset_index()
-fig, ax = plt.subplots(figsize=(12, 6))
-sns.lineplot(data=hourly_pm25, x='hour', y='PM2.5', marker="o", linewidth=2, color="#66BB6A")
-plt.title("PM2.5 Levels by Hour of the Day")
-ax.tick_params(axis="x", rotation=45)
-ax.tick_params(axis="y", labelsize=15)
-st.pyplot(fig)
-
-# Display additional insights
-st.caption('Copyright (C) ASHRI AULIA AZZAHRA 2024')
+    # Summary Insights
+    st.header("Insights")
+    st.markdown("""
+    - Certain locations have higher PM2.5 levels than others.
+    - PM2.5 levels are generally higher during specific hours of the day (e.g., nighttime).
+    - PM2.5 tends to increase during winter.
+    - Factors such as temperature, dew point, and rainfall have significant correlations with PM2.5 levels.
+    """)
