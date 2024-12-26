@@ -51,4 +51,4 @@ else:
 
 # Footer
 st.markdown("---")
-st.markdown("Dibuat dengan ❤️ oleh [Nama Anda]")
+st.markdown("Dibuat dengan ❤️ oleh ASHRI AULIA AZZAHRA")
