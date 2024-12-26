@@ -1,1 +1,54 @@
-{"nbformat":4,"nbformat_minor":0,"metadata":{"colab":{"provenance":[],"authorship_tag":"ABX9TyP6MGgLyvxofMPJoE2UcgFc"},"kernelspec":{"name":"python3","display_name":"Python 3"},"language_info":{"name":"python"}},"cells":[{"cell_type":"code","execution_count":1,"metadata":{"colab":{"base_uri":"https://localhost:8080/","height":384},"id":"9Ue_MQ9F4vNg","executionInfo":{"status":"error","timestamp":1735199333362,"user_tz":-420,"elapsed":560,"user":{"displayName":"Ashri Aulia Azzahra M672B4KX0694","userId":"07956476678387516129"}},"outputId":"484909dd-727b-4ec6-f556-7a9c2b760b20"},"outputs":[{"output_type":"error","ename":"ModuleNotFoundError","evalue":"No module named 'streamlit'","traceback":["\u001b[0;31m---------------------------------------------------------------------------\u001b[0m","\u001b[0;31mModuleNotFoundError\u001b[0m                       Traceback (most recent call last)","\u001b[0;32m<ipython-input-1-d9c505e4d726>\u001b[0m in \u001b[0;36m<cell line: 1>\u001b[0;34m()\u001b[0m\n\u001b[0;32m----> 1\u001b[0;31m \u001b[0;32mimport\u001b[0m \u001b[0mstreamlit\u001b[0m \u001b[0;32mas\u001b[0m \u001b[0mst\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m      2\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mpandas\u001b[0m \u001b[0;32mas\u001b[0m \u001b[0mpd\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      3\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mseaborn\u001b[0m \u001b[0;32mas\u001b[0m \u001b[0msns\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      4\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mmatplotlib\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mpyplot\u001b[0m \u001b[0;32mas\u001b[0m \u001b[0mplt\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      5\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n","\u001b[0;31mModuleNotFoundError\u001b[0m: No module named 'streamlit'","","\u001b[0;31m---------------------------------------------------------------------------\u001b[0;32m\nNOTE: If your import is failing due to a missing package, you can\nmanually install dependencies using either !pip or !apt.\n\nTo view examples of installing some common dependencies, click the\n\"Open Examples\" button below.\n\u001b[0;31m---------------------------------------------------------------------------\u001b[0m\n"],"errorDetails":{"actions":[{"action":"open_url","actionText":"Open Examples","url":"/notebooks/snippets/importing_libraries.ipynb"}]}}],"source":["import streamlit as st\n","import pandas as pd\n","import seaborn as sns\n","import matplotlib.pyplot as plt\n","\n","# Load dataset\n","@st.cache\n","def load_data(file_path):\n","    return pd.read_csv(file_path)\n","\n","# App title\n","st.title(\"Dashboard Analisis Data Polusi Udara\")\n","st.sidebar.title(\"Pengaturan Dashboard\")\n","\n","# File uploader\n","uploaded_file = st.sidebar.file_uploader(\"Upload File CSV\", type=[\"csv\"])\n","if uploaded_file is not None:\n","    data = load_data(uploaded_file)\n","    st.sidebar.success(\"File berhasil dimuat!\")\n","else:\n","    st.warning(\"Harap upload file CSV untuk melanjutkan.\")\n","\n","if uploaded_file:\n","    # Show raw data\n","    if st.sidebar.checkbox(\"Tampilkan Data Mentah\"):\n","        st.subheader(\"Data Mentah\")\n","        st.write(data)\n","\n","    # Data statistics\n","    if st.sidebar.checkbox(\"Tampilkan Statistik Deskriptif\"):\n","        st.subheader(\"Statistik Deskriptif\")\n","        st.write(data.describe())\n","\n","    # Heatmap correlation\n","    if st.sidebar.checkbox(\"Tampilkan Heatmap Korelasi\"):\n","        st.subheader(\"Heatmap Korelasi Variabel\")\n","        fig, ax = plt.subplots(figsize=(10, 8))\n","        sns.heatmap(data.corr(), annot=True, fmt=\".2f\", cmap=\"coolwarm\", ax=ax)\n","        st.pyplot(fig)\n","\n","    # Pairplot for visualization\n","    if st.sidebar.checkbox(\"Tampilkan Pairplot Variabel\"):\n","        st.subheader(\"Pairplot Variabel\")\n","        st.text(\"Pairplot ini membutuhkan waktu beberapa detik untuk dirender.\")\n","        selected_vars = st.sidebar.multiselect(\n","            \"Pilih Variabel untuk Pairplot\",\n","            options=data.columns,\n","            default=data.columns[:3]  # Default: tiga variabel pertama\n","        )\n","        if selected_vars:\n","            fig = sns.pairplot(data[selected_vars], diag_kind=\"kde\", height=2)\n","            st.pyplot(fig)\n","        else:\n","            st.warning(\"Pilih setidaknya satu variabel untuk pairplot.\")\n","\n","    # Bar chart for selected variable\n","    if st.sidebar.checkbox(\"Tampilkan Histogram Variabel\"):\n","        st.subheader(\"Histogram Variabel\")\n","        selected_column = st.sidebar.selectbox(\n","            \"Pilih Variabel untuk Histogram\",\n","            options=data.columns\n","        )\n","        fig, ax = plt.subplots()\n","        data[selected_column].plot(kind=\"hist\", bins=20, alpha=0.7, ax=ax)\n","        ax.set_title(f\"Histogram {selected_column}\")\n","        ax.set_xlabel(selected_column)\n","        st.pyplot(fig)\n","\n","    # Additional insights\n","    if st.sidebar.checkbox(\"Tampilkan Data Outlier\"):\n","        st.subheader(\"Analisis Outlier\")\n","        selected_outlier_var = st.sidebar.selectbox(\n","            \"Pilih Variabel untuk Outlier Detection\",\n","            options=data.columns\n","        )\n","        fig, ax = plt.subplots()\n","        sns.boxplot(data[selected_outlier_var], ax=ax, color=\"skyblue\")\n","        ax.set_title(f\"Boxplot {selected_outlier_var}\")\n","        st.pyplot(fig)\n"]}]}
+import streamlit as st
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Set page configuration
+st.set_page_config(page_title="Dashboard Udara", layout="wide")
+
+# Title and description
+st.title("Dashboard Analisis Data Udara")
+st.write("Analisis data kualitas udara dengan visualisasi interaktif.")
+
+# Upload data
+uploaded_file = st.file_uploader("Unggah file dataset (CSV):", type=["csv"])
+if uploaded_file:
+    data = pd.read_csv(uploaded_file)
+    st.write("### Dataframe")
+    st.dataframe(data)
+
+    # Sidebar options
+    st.sidebar.header("Pengaturan Visualisasi")
+    selected_columns = st.sidebar.multiselect("Pilih kolom untuk korelasi:", data.columns)
+
+    if selected_columns:
+        # Correlation heatmap
+        st.write("### Heatmap Korelasi")
+        fig, ax = plt.subplots(figsize=(10, 8))
+        sns.heatmap(data[selected_columns].corr(), annot=True, fmt=".2f", cmap="coolwarm", ax=ax)
+        st.pyplot(fig)
+
+    # Histogram
+    st.write("### Histogram")
+    selected_column = st.sidebar.selectbox("Pilih kolom untuk histogram:", data.columns)
+    bins = st.sidebar.slider("Jumlah bins:", min_value=5, max_value=50, value=20)
+    fig, ax = plt.subplots()
+    data[selected_column].hist(bins=bins, ax=ax)
+    st.pyplot(fig)
+
+    # Scatter plot
+    st.write("### Scatter Plot")
+    x_axis = st.sidebar.selectbox("Pilih sumbu X:", data.columns)
+    y_axis = st.sidebar.selectbox("Pilih sumbu Y:", data.columns)
+    fig, ax = plt.subplots()
+    ax.scatter(data[x_axis], data[y_axis])
+    ax.set_xlabel(x_axis)
+    ax.set_ylabel(y_axis)
+    st.pyplot(fig)
+
+else:
+    st.write("Unggah file CSV untuk memulai.")
+
+# Footer
+st.markdown("---")
+st.markdown("Dibuat dengan ❤️ oleh [Nama Anda]")
