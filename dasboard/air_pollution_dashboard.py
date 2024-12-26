@@ -4,22 +4,26 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import os
 import streamlit as st
-from google.colab import drive
+import requests
+from io import StringIO
 
 # Set up Streamlit and Seaborn styling
 sns.set(style="whitegrid")
 st.set_option('deprecation.showPyplotGlobalUse', False)
 
-# Mount Google Drive for accessing dataset (specific to Google Colab)
-drive.mount('/content/drive')
+# URL of the dataset stored in GitHub
+folder_url = 'https://raw.githubusercontent.com/ashriazzr/submission-data-analyst-dicoding/main/data/'
+
+# List of files in the GitHub folder (manually providing the file names or using requests)
+file_names = ["data_1.csv", "data_2.csv", "data_3.csv"]  # Add all CSV file names here
 
 # Data Wrangling - Gathering Data
-folder_path = 'https://github.com/ashriazzr/submission-data-analyst-dicoding/tree/main/data'
-file_list = [f for f in os.listdir(folder_path) if f.endswith('.csv')]
-
 dataframes = []
-for file in file_list:
-    df = pd.read_csv(os.path.join(folder_path, file))
+for file in file_names:
+    file_url = folder_url + file
+    response = requests.get(file_url)
+    file_content = StringIO(response.text)
+    df = pd.read_csv(file_content)
     df['Location'] = file.split('_')[2]  # Add Location column based on the file name
     dataframes.append(df)
 
@@ -38,10 +42,11 @@ combined_df_cleaned['datetime'] = pd.to_datetime(
 min_date = combined_df_cleaned["datetime"].min()
 max_date = combined_df_cleaned["datetime"].max()
 
-
+start_date = st.sidebar.date_input("Start Date", min_date)
+end_date = st.sidebar.date_input("End Date", max_date)
 
 # Filter data based on the selected date range
-main_df = combined_df_cleaned[(combined_df_cleaned["datetime"] >= pd.to_datetime(start_date)) &
+main_df = combined_df_cleaned[(combined_df_cleaned["datetime"] >= pd.to_datetime(start_date)) & 
                               (combined_df_cleaned["datetime"] <= pd.to_datetime(end_date))]
 
 # Streamlit Dashboard Setup
@@ -93,4 +98,3 @@ st.pyplot(fig)
 
 # Display additional insights
 st.caption('Copyright (C) ASHRI AULIA AZZAHRA 2024')
-
