@@ -12,7 +12,7 @@ datetime_cols = ["order_approved_at", "order_delivered_carrier_date", "order_del
                  "order_estimated_delivery_date", "order_purchase_timestamp", "shipping_limit_date"]
 
 # Load datasets
-all_df = pd.read_csv("https://github.com/ashriazzr/submission-data-analyst-dicoding/tree/main/dasboard/df.csv")
+all_df = pd.read_csv("https://raw.githubusercontent.com/ashriazzr/submission-data-analyst-dicoding/refs/heads/main/dashboard/df.csv")
 all_df.sort_values(by="order_approved_at", inplace=True)
 all_df.reset_index(drop=True, inplace=True)
 
