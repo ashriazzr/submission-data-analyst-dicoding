@@ -7,7 +7,7 @@ sns.set(style="darkgrid")
 
 # URL Dataset
 all_data_url = "https://github.com/ashriazzr/submission-data-analyst-dicoding/blob/main/dashboard/all_data.csv"
-all_geo_url = "https://raw.githubusercontent.com/ashriazzr/submission-data-analyst-dicoding/main/dashboard/geo_.csv"
+all_geo_url = "https://github.com/ashriazzr/submission-data-analyst-dicoding/blob/main/dashboard/geo_data.csv"
 
 # Fungsi untuk memuat data
 @st.cache_data
