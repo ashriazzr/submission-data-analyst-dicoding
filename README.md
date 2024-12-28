@@ -52,8 +52,8 @@ pip install -r requirements.txt
 3. **Visualization**: Run the Streamlit dashboard for interactive data exploration:
 
 ```
-cd data-analyst-dicoding/dashboard
-streamlit run air-pollution-dashboard.py
+cd submission-data-analyst-dicoding/dashboard
+streamlit run dashboard.py
 ```
 
 Access the dashboard in your web browser at `http://localhost:8501`.
