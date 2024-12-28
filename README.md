@@ -2,7 +2,8 @@
 
 E-Commerce Data Dashboard
 
-[E-Commerce Data Dashboard Streamlit App]()
+[E-Commerce Data Dashboard Streamlit App](submission-data-analyst-dicoding-xwazlqf6qyk85spzvagepz
+.streamlit.app)
 
 ## Table of Contents
 
