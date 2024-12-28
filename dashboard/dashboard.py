@@ -2,12 +2,11 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import streamlit as st
-from streamlit_folium import folium_static
-import folium
+from func import DataAnalyzer, BrazilMapPlotter
 
-sns.set(style='darkgrid')
+sns.set(style="darkgrid")
 
-# Define datetime columns
+# Kolom datetime
 datetime_cols = [
     "order_approved_at", "order_delivered_carrier_date", 
     "order_delivered_customer_date", "order_estimated_delivery_date", 
@@ -15,28 +14,40 @@ datetime_cols = [
 ]
 
 # Load datasets
-all_df = pd.read_csv("https://raw.githubusercontent.com/ashriazzr/submission-data-analyst-dicoding/main/dashboard/df.csv")
-geolocation = pd.read_csv("https://raw.githubusercontent.com/ashriazzr/submission-data-analyst-dicoding/main/dashboard/geolocation.csv")
+@st.cache_data
+def load_data():
+    all_df = pd.read_csv(
+        "https://raw.githubusercontent.com/ashriazzr/submission-data-analyst-dicoding/main/dashboard/df.csv"
+    )
+    geolocation = pd.read_csv(
+        "https://raw.githubusercontent.com/ashriazzr/submission-data-analyst-dicoding/main/dashboard/geolocation.csv"
+    )
+    return all_df, geolocation
 
-# Data preparation
-all_df[datetime_cols] = all_df[datetime_cols].apply(pd.to_datetime, errors='coerce')
+all_df, geolocation = load_data()
+
+# Data Preparation
 all_df.sort_values(by="order_approved_at", inplace=True)
 all_df.reset_index(drop=True, inplace=True)
+
+# Konversi kolom datetime
+for col in datetime_cols:
+    all_df[col] = pd.to_datetime(all_df[col], errors="coerce")
 
 min_date = all_df["order_approved_at"].min()
 max_date = all_df["order_approved_at"].max()
 
-# Sidebar
+# Sidebar - Date Range
 with st.sidebar:
     st.header("Filter")
     start_date, end_date = st.date_input(
         label="Select Date Range",
         value=[min_date, max_date],
         min_value=min_date,
-        max_value=max_date
+        max_value=max_date,
     )
 
-# Filter data by date range
+# Filter data berdasarkan rentang tanggal
 if start_date and end_date:
     main_df = all_df[
         (all_df["order_approved_at"] >= pd.Timestamp(start_date)) & 
@@ -44,71 +55,135 @@ if start_date and end_date:
     ]
 else:
     st.error("Invalid date range. Please select a valid range.")
+    st.stop()
 
-# Streamlit Title
+# Analisis Data
+function = DataAnalyzer(main_df)
+map_plot = BrazilMapPlotter(geolocation, plt, st)
+
+daily_orders_df = function.create_daily_orders_df()
+sum_spend_df = function.create_sum_spend_df()
+sum_order_items_df = function.create_sum_order_items_df()
+review_score, common_score = function.review_score_df()
+state, most_common_state = function.create_bystate_df()
+order_status, common_status = function.create_order_status()
+
+# Streamlit App
 st.title("E-Commerce Public Data Analysis")
 
 # Daily Orders Delivered
 st.subheader("Daily Orders Delivered")
-daily_orders_df = main_df.groupby(main_df["order_approved_at"].dt.date).agg(
-    order_count=("order_id", "count"),
-    revenue=("price", "sum")
-).reset_index()
-
 total_order = daily_orders_df["order_count"].sum()
 total_revenue = daily_orders_df["revenue"].sum()
 
-col1, col2 = st.columns(2)
-col1.metric("Total Orders", f"{total_order}")
-col2.metric("Total Revenue", f"${total_revenue:,.2f}")
+st.write(f"Total Orders: **{total_order}**")
+st.write(f"Total Revenue: **${total_revenue:,.2f}**")
 
 fig, ax = plt.subplots(figsize=(12, 6))
 sns.lineplot(
-    data=daily_orders_df, 
-    x="order_approved_at", 
-    y="order_count", 
-    marker="o", 
-    ax=ax
+    data=daily_orders_df,
+    x="order_approved_at",
+    y="order_count",
+    marker="o",
+    color="#2196F3",
+    linewidth=2,
+    ax=ax,
 )
-ax.set_title("Daily Orders Delivered")
-ax.set_xlabel("Date")
-ax.set_ylabel("Order Count")
+ax.set_title("Daily Orders Delivered", fontsize=16)
+ax.set_xlabel("Date", fontsize=14)
+ax.set_ylabel("Order Count", fontsize=14)
+plt.xticks(rotation=45)
 st.pyplot(fig)
 
-# Customer Demographic - Geolocation
-st.subheader("Customer Geolocation")
-geo_group = geolocation.groupby("customer_state").agg(
-    customer_count=("customer_id", "count")
-).reset_index()
+# Customer Spend Money
+st.subheader("Customer Spend Money")
+total_spend = sum_spend_df["total_spend"].sum()
+avg_spend = sum_spend_df["total_spend"].mean()
+
+st.write(f"Total Spend: **${total_spend:,.2f}**")
+st.write(f"Average Spend: **${avg_spend:,.2f}**")
+
+fig, ax = plt.subplots(figsize=(12, 6))
+sns.lineplot(
+    data=sum_spend_df,
+    x="order_approved_at",
+    y="total_spend",
+    marker="o",
+    color="#FF9800",
+    linewidth=2,
+    ax=ax,
+)
+ax.set_title("Customer Spend Over Time", fontsize=16)
+ax.set_xlabel("Date", fontsize=14)
+ax.set_ylabel("Total Spend", fontsize=14)
+plt.xticks(rotation=45)
+st.pyplot(fig)
+
+# Order Items
+st.subheader("Order Items")
+total_items = sum_order_items_df["product_count"].sum()
+avg_items = sum_order_items_df["product_count"].mean()
+
+st.write(f"Total Items Sold: **{total_items}**")
+st.write(f"Average Items per Order: **{avg_items:.2f}**")
+
+fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(15, 6))
+sns.barplot(
+    data=sum_order_items_df.nlargest(5, "product_count"),
+    x="product_count",
+    y="product_category_name_english",
+    palette="coolwarm",
+    ax=axes[0],
+)
+axes[0].set_title("Top 5 Sold Products", fontsize=14)
+sns.barplot(
+    data=sum_order_items_df.nsmallest(5, "product_count"),
+    x="product_count",
+    y="product_category_name_english",
+    palette="coolwarm",
+    ax=axes[1],
+)
+axes[1].set_title("Bottom 5 Sold Products", fontsize=14)
+st.pyplot(fig)
+
+# Review Score
+st.subheader("Review Score")
+avg_review_score = review_score.mean()
+most_common_review_score = review_score.value_counts().idxmax()
+
+st.write(f"Average Review Score: **{avg_review_score:.2f}**")
+st.write(f"Most Common Review Score: **{most_common_review_score}**")
 
 fig, ax = plt.subplots(figsize=(12, 6))
 sns.barplot(
-    data=geo_group, 
-    x="customer_state", 
-    y="customer_count", 
-    palette="viridis", 
-    ax=ax
+    x=review_score.index,
+    y=review_score.values,
+    palette="Blues",
+    ax=ax,
 )
-ax.set_title("Customers by State")
-ax.set_xlabel("State")
-ax.set_ylabel("Customer Count")
+ax.set_title("Review Score Distribution", fontsize=16)
+ax.set_xlabel("Review Score", fontsize=14)
+ax.set_ylabel("Frequency", fontsize=14)
 st.pyplot(fig)
 
-# Customer Demographic - Map
-st.subheader("Customer Map")
-try:
-    customer_map = folium.Map(location=[-14.235, -51.9253], zoom_start=4)  # Brazil's coordinates
+# Customer Demographic
+st.subheader("Customer Demographic")
+tab1, tab2 = st.tabs(["State", "Geolocation"])
 
-    for _, row in geolocation.iterrows():
-        if not pd.isna(row["geolocation_lat"]) and not pd.isna(row["geolocation_lng"]):
-            folium.CircleMarker(
-                location=[row["geolocation_lat"], row["geolocation_lng"]],
-                radius=3,
-                popup=row["customer_unique_id"],
-                color="blue",
-                fill=True
-            ).add_to(customer_map)
+with tab1:
+    st.write(f"Most Common State: **{most_common_state}**")
 
-    folium_static(customer_map)
-except Exception as e:
-    st.error(f"An error occurred while rendering the map: {e}")
+    fig, ax = plt.subplots(figsize=(12, 6))
+    sns.barplot(
+        x=state.index,
+        y=state.values,
+        palette="viridis",
+        ax=ax,
+    )
+    ax.set_title("Customers by State", fontsize=16)
+    ax.set_xlabel("State", fontsize=14)
+    ax.set_ylabel("Customer Count", fontsize=14)
+    st.pyplot(fig)
+
+with tab2:
+    map_plot.plot()
