@@ -5,18 +5,21 @@ import streamlit as st
 from streamlit_folium import folium_static
 import folium
 
-sns.set(style='dark')
+sns.set(style='darkgrid')
 
 # Define datetime columns
-datetime_cols = ["order_approved_at", "order_delivered_carrier_date", "order_delivered_customer_date", 
-                 "order_estimated_delivery_date", "order_purchase_timestamp", "shipping_limit_date"]
+datetime_cols = [
+    "order_approved_at", "order_delivered_carrier_date", 
+    "order_delivered_customer_date", "order_estimated_delivery_date", 
+    "order_purchase_timestamp", "shipping_limit_date"
+]
 
 # Load datasets
-all_df = pd.read_csv("https://raw.githubusercontent.com/ashriazzr/submission-data-analyst-dicoding/refs/heads/main/dashboard/df.csv")
-geolocation = pd.read_csv('https://raw.githubusercontent.com/ashriazzr/submission-data-analyst-dicoding/refs/heads/main/dashboard/geolocation.csv')
+all_df = pd.read_csv("https://raw.githubusercontent.com/ashriazzr/submission-data-analyst-dicoding/main/dashboard/df.csv")
+geolocation = pd.read_csv("https://raw.githubusercontent.com/ashriazzr/submission-data-analyst-dicoding/main/dashboard/geolocation.csv")
 
 # Data preparation
-all_df[datetime_cols] = all_df[datetime_cols].apply(pd.to_datetime)
+all_df[datetime_cols] = all_df[datetime_cols].apply(pd.to_datetime, errors='coerce')
 all_df.sort_values(by="order_approved_at", inplace=True)
 all_df.reset_index(drop=True, inplace=True)
 
@@ -34,10 +37,13 @@ with st.sidebar:
     )
 
 # Filter data by date range
-main_df = all_df[
-    (all_df["order_approved_at"] >= pd.Timestamp(start_date)) & 
-    (all_df["order_approved_at"] <= pd.Timestamp(end_date))
-]
+if start_date and end_date:
+    main_df = all_df[
+        (all_df["order_approved_at"] >= pd.Timestamp(start_date)) & 
+        (all_df["order_approved_at"] <= pd.Timestamp(end_date))
+    ]
+else:
+    st.error("Invalid date range. Please select a valid range.")
 
 # Streamlit Title
 st.title("E-Commerce Public Data Analysis")
@@ -90,15 +96,19 @@ st.pyplot(fig)
 
 # Customer Demographic - Map
 st.subheader("Customer Map")
-customer_map = folium.Map(location=[-14.235, -51.9253], zoom_start=4)  # Brazil's coordinates
+try:
+    customer_map = folium.Map(location=[-14.235, -51.9253], zoom_start=4)  # Brazil's coordinates
 
-for _, row in geolocation.iterrows():
-    folium.CircleMarker(
-        location=[row["geolocation_lat"], row["geolocation_lng"]],
-        radius=3,
-        popup=row["customer_unique_id"],
-        color="blue",
-        fill=True
-    ).add_to(customer_map)
+    for _, row in geolocation.iterrows():
+        if not pd.isna(row["geolocation_lat"]) and not pd.isna(row["geolocation_lng"]):
+            folium.CircleMarker(
+                location=[row["geolocation_lat"], row["geolocation_lng"]],
+                radius=3,
+                popup=row["customer_unique_id"],
+                color="blue",
+                fill=True
+            ).add_to(customer_map)
 
-folium_static(customer_map)
+    folium_static(customer_map)
+except Exception as e:
+    st.error(f"An error occurred while rendering the map: {e}")
