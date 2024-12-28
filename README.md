@@ -1,8 +1,8 @@
 # E-Commerce Public Data Analysis with Python - Dicoding
 
-![E-Commerce Data Dashboard]
+[E-Commerce Data Dashboard]
 
-[E-Commerce Data Dashboard Streamlit App](#[https://submission-data-analyst-dicoding-y2xyvrvw3zucy3wb8dzn6x.streamlit.app/])
+[E-Commerce Data Dashboard Streamlit App](#https://submission-data-analyst-dicoding-y2xyvrvw3zucy3wb8dzn6x.streamlit.app/)
 
 ## Table of Contents
 
