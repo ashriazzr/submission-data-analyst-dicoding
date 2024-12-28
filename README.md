@@ -1,8 +1,8 @@
 # E-Commerce Public Data Analysis with Python - Dicoding
 
-![E-Commerce Data Dashboard](dashboard.gif)
+![E-Commerce Data Dashboard]
 
-[E-Commerce Data Dashboard Streamlit App](https://submission-data-analyst-dicoding.streamlit.app/)
+[E-Commerce Data Dashboard Streamlit App](https://e-commerce-data-analyst.streamlit.app/)
 
 ## Table of Contents
 
@@ -14,14 +14,13 @@
 
 ## Overview
 
-This project focuses on data analysis and visualization centered around air quality public data. It includes code for data preprocessing, exploratory data analysis (EDA), and a Streamlit dashboard for interactive exploration of air quality metrics. The goal of this project is to analyze data from public air quality datasets to gain insights into environmental conditions and pollution levels.
+This project is a data analysis and visualization project focused on e-commerce public data. It includes code for data wrangling, exploratory data analysis (EDA), and a Streamlit dashboard for interactive data exploration. This project aims to analyze data on the E-Commerce Public Dataset.
 
 ## Project Structure
 
 - `dashboard/`: This directory contains dashboard.py which is used to create dashboards of data analysis results.
 - `data/`: Directory containing the raw CSV data files.
 - `notebook.ipynb`: This file is used to perform data analysis.
-- `notebook_EN.ipynb`: notebook.ipynb in English.
 - `README.md`: This documentation file.
 
 ## Installation
@@ -61,4 +60,4 @@ Access the dashboard in your web browser at `http://localhost:8501`.
 
 ## Data Sources
 
-The project uses E-Commerce Public Dataset from [Belajar Analisis Data dengan Python's Final Project](https://drive.google.com/file/d/1RhU3gJlkteaAQfyn9XOVAz7a5o1-etgr/view) offered by [Dicoding](https://www.dicoding.com/).
+The project uses E-Commerce Public Dataset from [Belajar Analisis Data dengan Python's Final Project](https://drive.google.com/file/d/1MsAjPM7oKtVfJL_wRp1qmCajtSG1mdcK/view) offered by [Dicoding](https://www.dicoding.com/).
