@@ -5,9 +5,12 @@ import seaborn as sns
 import streamlit as st
 import urllib
 from func import DataAnalyzer, BrazilMapPlotter
+from streamlit_folium import folium_static
+import folium
 
 sns.set(style='dark')
 
+# Define datetime columns
 datetime_cols = ["order_approved_at", "order_delivered_carrier_date", "order_delivered_customer_date", 
                  "order_estimated_delivery_date", "order_purchase_timestamp", "shipping_limit_date"]
 
@@ -22,6 +25,10 @@ data = geolocation.drop_duplicates(subset='customer_unique_id')
 # Convert columns to datetime
 for col in datetime_cols:
     all_df[col] = pd.to_datetime(all_df[col])
+# Data preparation
+all_df[datetime_cols] = all_df[datetime_cols].apply(pd.to_datetime)
+all_df.sort_values(by="order_approved_at", inplace=True)
+all_df.reset_index(drop=True, inplace=True)
 
 min_date = all_df["order_approved_at"].min()
 max_date = all_df["order_approved_at"].max()
@@ -35,6 +42,7 @@ with st.sidebar:
         st.write(' ')
 
     # Date Range
+    st.header("Filter")
     start_date, end_date = st.date_input(
         label="Select Date Range",
         value=[min_date, max_date],
@@ -56,8 +64,14 @@ sum_order_items_df = function.create_sum_order_items_df()
 review_score, common_score = function.review_score_df()
 state, most_common_state = function.create_bystate_df()
 order_status, common_status = function.create_order_status()
+# Filter data by date range
+main_df = all_df[
+    (all_df["order_approved_at"] >= pd.Timestamp(start_date)) & 
+    (all_df["order_approved_at"] <= pd.Timestamp(end_date))
+]
 
 # Streamlit app
+# Streamlit Title
 st.title("E-Commerce Public Data Analysis")
 
 # Daily Orders Delivered
@@ -67,10 +81,16 @@ col1, col2 = st.columns(2)
 with col1:
     total_order = daily_orders_df["order_count"].sum()
     st.markdown(f"Total Order: **{total_order}**")
+daily_orders_df = main_df.groupby(main_df["order_approved_at"].dt.date).agg(
+    order_count=("order_id", "count"),
+    revenue=("price", "sum")
+).reset_index()
 
 with col2:
     total_revenue = daily_orders_df["revenue"].sum()
     st.markdown(f"Total Revenue: **{total_revenue}**")
+total_order = daily_orders_df["order_count"].sum()
+total_revenue = daily_orders_df["revenue"].sum()
 
 fig, ax = plt.subplots(figsize=(12, 6))
 sns.lineplot(
@@ -95,6 +115,8 @@ with col1:
 with col2:
     avg_spend = sum_spend_df["total_spend"].mean()
     st.markdown(f"Average Spend: **{avg_spend}**")
+col1.metric("Total Orders", f"{total_order}")
+col2.metric("Total Revenue", f"${total_revenue:,.2f}")
 
 fig, ax = plt.subplots(figsize=(12, 6))
 sns.lineplot(
@@ -137,8 +159,16 @@ sns.barplot(
     data=sum_order_items_df.tail(5), 
     palette="viridis", 
     ax=axes[1]
+    data=daily_orders_df, 
+    x="order_approved_at", 
+    y="order_count", 
+    marker="o", 
+    ax=ax
 )
 axes[1].set_title("Least Sold Products")
+ax.set_title("Daily Orders Delivered")
+ax.set_xlabel("Date")
+ax.set_ylabel("Order Count")
 st.pyplot(fig)
 
 # Review Score
@@ -152,20 +182,35 @@ with col1:
 with col2:
     most_common_review_score = review_score.value_counts().idxmax()
     st.markdown(f"Most Common Review Score: **{most_common_review_score}**")
+# Customer Demographic - Geolocation
+st.subheader("Customer Geolocation")
+geo_group = geolocation.groupby("customer_state").agg(
+    customer_count=("customer_id", "count")
+).reset_index()
 
 fig, ax = plt.subplots(figsize=(12, 6))
 sns.barplot(
     x=review_score.index,
     y=review_score.values,
     palette="viridis",
+    data=geo_group, 
+    x="customer_state", 
+    y="customer_count", 
+    palette="viridis", 
     ax=ax
 )
 ax.set_title("Customer Review Scores")
+ax.set_title("Customers by State")
+ax.set_xlabel("State")
+ax.set_ylabel("Customer Count")
 st.pyplot(fig)
 
 # Customer Demographic
 st.subheader("Customer Demographic")
 tab1, tab2 = st.tabs(["State", "Geolocation"])
+# Customer Demographic - Map
+st.subheader("Customer Map")
+customer_map = folium.Map(location=[-14.235, -51.9253], zoom_start=4)  # Brazil's coordinates
 
 with tab1:
     most_common_state = state.customer_state.value_counts().idxmax()
@@ -180,6 +225,15 @@ with tab1:
     )
     ax.set_title("Customers by State")
     st.pyplot(fig)
+for _, row in geolocation.iterrows():
+    folium.CircleMarker(
+        location=[row["geolocation_lat"], row["geolocation_lng"]],
+        radius=3,
+        popup=row["customer_unique_id"],
+        color="blue",
+        fill=True
+    ).add_to(customer_map)
 
 with tab2:
     map_plot.plot()
+folium_static(customer_map)
