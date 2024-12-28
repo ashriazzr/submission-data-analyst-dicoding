@@ -11,14 +11,14 @@ datetime_cols = [
 ]
 
 # Load datasets
-all_df_url = "https://raw.githubusercontent.com/ashriazzr/submission-data-analyst-dicoding/refs/heads/main/dashboard/df.csv"
-geolocation_url = "https://raw.githubusercontent.com/ashriazzr/submission-data-analyst-dicoding/refs/heads/main/dashboard/geolocation.csv"
+all_data_url = "https://raw.githubusercontent.com/ashriazzr/submission-data-analyst-dicoding/refs/heads/main/dashboard/all_data.csv"
+all_geo_url = "https://raw.githubusercontent.com/ashriazzr/submission-data-analyst-dicoding/refs/heads/main/dashboard/geo_.csv"
 
-all_df = pd.read_csv(all_df_url)
+all_df = pd.read_csv(all_data_url)
 all_df.sort_values(by="order_approved_at", inplace=True)
 all_df.reset_index(drop=True, inplace=True)
 
-geolocation = pd.read_csv(geolocation_url)
+geolocation = pd.read_csv(all_geo_url)
 unique_geolocation = geolocation.drop_duplicates(subset="customer_unique_id")
 
 # Convert columns to datetime
