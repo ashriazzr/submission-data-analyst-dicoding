@@ -6,7 +6,7 @@ import streamlit as st
 sns.set(style="darkgrid")
 
 # URL Dataset
-all_data_url = "https://raw.githubusercontent.com/ashriazzr/submission-data-analyst-dicoding/main/dashboard/all_data.csv"
+all_data_url = "https://github.com/ashriazzr/submission-data-analyst-dicoding/blob/main/dashboard/all_data.csv"
 all_geo_url = "https://raw.githubusercontent.com/ashriazzr/submission-data-analyst-dicoding/main/dashboard/geo_.csv"
 
 # Fungsi untuk memuat data
