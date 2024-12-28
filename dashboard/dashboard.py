@@ -16,7 +16,7 @@ all_df = pd.read_csv("https://raw.githubusercontent.com/ashriazzr/submission-dat
 all_df.sort_values(by="order_approved_at", inplace=True)
 all_df.reset_index(drop=True, inplace=True)
 
-geolocation = pd.read_csv('https://github.com/ashriazzr/submission-data-analyst-dicoding/tree/main/dasboard/geolocation.csv')
+geolocation = pd.read_csv('https://raw.githubusercontent.com/ashriazzr/submission-data-analyst-dicoding/refs/heads/main/dashboard/geolocation.csv')
 data = geolocation.drop_duplicates(subset='customer_unique_id')
 
 # Convert columns to datetime
@@ -32,8 +32,6 @@ with st.sidebar:
     with col1:
         st.write(' ')
     with col2:
-        st.image("https://github.com/ashriazzr/submission-data-analyst-dicoding/tree/main/dasboard/logo.png", width=100)
-    with col3:
         st.write(' ')
 
     # Date Range
