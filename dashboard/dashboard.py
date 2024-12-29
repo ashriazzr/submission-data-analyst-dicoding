@@ -64,39 +64,30 @@ st.subheader("Pengaruh Cuaca terhadap Penyewaan Sepeda")
 
 # Plot scatter untuk melihat hubungan antara suhu, kelembapan dan jumlah penyewaan sepeda
 fig, ax = plt.subplots(figsize=(10, 6))
-sns.scatterplot(x=df['temperature'], y=df['count'], hue=df['weather'], palette='coolwarm', ax=ax)
+sns.scatterplot(x=df['temp'], y=df['cnt'], hue=df['weathersit'], palette='coolwarm', ax=ax)
 ax.set_title("Hubungan antara Suhu dan Jumlah Penyewaan Sepeda berdasarkan Cuaca", fontsize=16)
 ax.set_xlabel('Suhu (°C)', fontsize=14)
 ax.set_ylabel('Jumlah Penyewaan Sepeda', fontsize=14)
 st.pyplot(fig)
-
-# Jika ada data kelembapan, kita juga bisa menambahkannya
-if 'humidity' in df.columns:
-    fig, ax = plt.subplots(figsize=(10, 6))
-    sns.scatterplot(x=df['humidity'], y=df['count'], hue=df['weather'], palette='coolwarm', ax=ax)
-    ax.set_title("Hubungan antara Kelembapan dan Jumlah Penyewaan Sepeda berdasarkan Cuaca", fontsize=16)
-    ax.set_xlabel('Kelembapan (%)', fontsize=14)
-    ax.set_ylabel('Jumlah Penyewaan Sepeda', fontsize=14)
-    st.pyplot(fig)
 
 # Menjawab Pertanyaan 2: Bagaimana Tren Penyewaan Sepeda Berdasarkan Musim?
 st.subheader("Tren Penyewaan Sepeda Berdasarkan Musim")
 
 # Misalkan kolom 'season' ada dalam dataset, kita buat boxplot berdasarkan musim
 fig, ax = plt.subplots(figsize=(10, 6))
-sns.boxplot(x=df['season'], y=df['count'], palette='Set2', ax=ax)
+sns.boxplot(x=df['season'], y=df['cnt'], palette='Set2', ax=ax)
 ax.set_title("Tren Penyewaan Sepeda Berdasarkan Musim", fontsize=16)
 ax.set_xlabel('Musim', fontsize=14)
 ax.set_ylabel('Jumlah Penyewaan Sepeda', fontsize=14)
 st.pyplot(fig)
 
 # Fitur rentang tanggal (jika ada kolom bertipe datetime)
-if 'date' in df.columns or 'tanggal' in df.columns:  # Asumsi ada kolom bertipe tanggal
-    df['tanggal'] = pd.to_datetime(df['tanggal'], errors='coerce')
+if 'dteday' in df.columns:  # Kolom yang sesuai untuk tanggal adalah 'dteday'
+    df['dteday'] = pd.to_datetime(df['dteday'], errors='coerce')
     start_date, end_date = st.date_input("Pilih rentang tanggal", 
-                                        [df['tanggal'].min(), df['tanggal'].max()])
-    filtered_df_by_date = df[(df['tanggal'] >= pd.to_datetime(start_date)) & 
-                             (df['tanggal'] <= pd.to_datetime(end_date))]
+                                        [df['dteday'].min(), df['dteday'].max()])
+    filtered_df_by_date = df[(df['dteday'] >= pd.to_datetime(start_date)) & 
+                             (df['dteday'] <= pd.to_datetime(end_date))]
     st.write(filtered_df_by_date)
 
 # Tabel Pivot
