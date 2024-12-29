@@ -1,8 +1,8 @@
-# E-Commerce Public Data Analysis with Python - Dicoding
+# Bike Sharing Dataset Data Analysis with Python - Dicoding
 
-E-Commerce Data Dashboard
+Bike Sharing Dataset Dashboard
 
-[E-Commerce Data Dashboard Streamlit App](https://submission-data-analyst-dicoding-y2xyvrvw3zucy3wb8dzn6x.streamlit.app/)
+[Bike Sharing Dataset Dashboard Streamlit App](https://submission-data-analyst-dicoding-y2xyvrvw3zucy3wb8dzn6x.streamlit.app/)
 
 ## Table of Contents
 
@@ -14,7 +14,7 @@ E-Commerce Data Dashboard
 
 ## Overview
 
-This project is a data analysis and visualization project focused on e-commerce public data. It includes code for data wrangling, exploratory data analysis (EDA), and a Streamlit dashboard for interactive data exploration. This project aims to analyze data on the E-Commerce Public Dataset.
+This project is a data analysis and visualization project focused on Bike Sharing Dataset. It includes code for data wrangling, exploratory data analysis (EDA), and a Streamlit dashboard for interactive data exploration. This project aims to analyze data on the Bike Sharing Dataset.
 
 ## Project Structure
 
@@ -60,4 +60,4 @@ Access the dashboard in your web browser at `http://localhost:8501`.
 
 ## Data Sources
 
-The project uses E-Commerce Public Dataset from [Belajar Analisis Data dengan Python's Final Project](https://drive.google.com/file/d/1MsAjPM7oKtVfJL_wRp1qmCajtSG1mdcK/view) offered by [Dicoding](https://www.dicoding.com/).
+The project uses Bike Sharing Dataset from [Belajar Analisis Data dengan Python's Final Project](https://drive.google.com/file/d/1RaBmV6Q6FYWU4HWZs80Suqd7KQC34diQ/view?usp=sharing) offered by [Dicoding](https://www.dicoding.com/).
