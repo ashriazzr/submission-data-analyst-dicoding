@@ -15,12 +15,20 @@ df = pd.read_csv(url)
 # Memeriksa nama kolom untuk memastikan 'weather' ada
 st.write("Kolom yang Tersedia: ", df.columns)
 
-# Memastikan kolom 'weather' adalah kategorikal dan 'rentals' numerik
-df['weather'] = df['weather'].astype('category')
+# Periksa apakah 'weather' ada atau menggunakan nama lain, misalnya 'weather_condition'
+if 'weather' in df.columns:
+    df['weather'] = df['weather'].astype('category')
+elif 'weather_condition' in df.columns:
+    df['weather_condition'] = df['weather_condition'].astype('category')
+
+# Mengonversi kolom 'rentals' menjadi numerik
 df['rentals'] = pd.to_numeric(df['rentals'], errors='coerce')
 
 # Menghapus data yang hilang
 df = df.dropna(subset=['weather', 'rentals'])
+
+# Memeriksa nilai unik dalam kolom 'weather' atau 'weather_condition'
+st.write(df['weather'].unique() if 'weather' in df.columns else df['weather_condition'].unique())
 
 # Visualisasi hubungan antara cuaca, suhu, kelembapan dan jumlah penyewaan sepeda
 fig, axes = plt.subplots(1, 3, figsize=(18, 6))
