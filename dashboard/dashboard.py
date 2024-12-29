@@ -90,6 +90,3 @@ if st.button('Download Data Asli'):
     st.download_button(label="Download CSV Asli", data=original_file, file_name="all_data.csv", mime="text/csv")
 
 
-modifikasi ini menjadi visual yang menjawab pertanyaaan in berdasarkan data hasil deploy yang saya punya all_data.csv
-Pertanyaan 1 : Apakah cuaca (weather, temperature, humidity) memengaruhi jumlah penyewaan sepeda?
-Pertanyaan 2 : Bagaimana tren penyewaan sepeda berdasarkan musim (season)?
