@@ -12,13 +12,16 @@ url = "https://raw.githubusercontent.com/ashriazzr/submission-data-analyst-dicod
 # Membaca CSV dari URL
 df = pd.read_csv(url)
 
-# Menampilkan data
-st.subheader("Data yang Diupload")
-st.write(df)
+# Memeriksa nama kolom untuk memastikan 'weather' ada
+st.write("Kolom yang Tersedia: ", df.columns)
 
-# Pertanyaan 1: Apakah cuaca (weather, temperature, humidity) memengaruhi jumlah penyewaan sepeda?
+# Memastikan kolom 'weather' adalah kategorikal dan 'rentals' numerik
+df['weather'] = df['weather'].astype('category')
+df['rentals'] = pd.to_numeric(df['rentals'], errors='coerce')
 
-st.subheader("Apakah Cuaca (Weather, Temperature, Humidity) Memengaruhi Jumlah Penyewaan Sepeda?")
+# Menghapus data yang hilang
+df = df.dropna(subset=['weather', 'rentals'])
+
 # Visualisasi hubungan antara cuaca, suhu, kelembapan dan jumlah penyewaan sepeda
 fig, axes = plt.subplots(1, 3, figsize=(18, 6))
 
@@ -41,19 +44,6 @@ axes[2].set_xlabel('Kelembapan (%)')
 axes[2].set_ylabel('Jumlah Penyewaan Sepeda')
 
 st.pyplot(fig)
-
-# Pertanyaan 2: Bagaimana tren penyewaan sepeda berdasarkan musim (season)?
-
-st.subheader("Tren Penyewaan Sepeda Berdasarkan Musim (Season)")
-# Visualisasi tren penyewaan sepeda berdasarkan musim
-fig2, ax2 = plt.subplots(figsize=(10, 6))
-
-sns.boxplot(data=df, x='season', y='rentals', ax=ax2, palette='coolwarm')
-ax2.set_title('Tren Penyewaan Sepeda Berdasarkan Musim')
-ax2.set_xlabel('Musim')
-ax2.set_ylabel('Jumlah Penyewaan Sepeda')
-
-st.pyplot(fig2)
 
 # Menyediakan tombol untuk mendownload data yang terfilter
 if st.button('Download Data yang Terfilter'):
