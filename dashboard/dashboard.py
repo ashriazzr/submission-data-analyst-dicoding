@@ -1,90 +1,151 @@
-import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import streamlit as st
 
-# Judul aplikasi
-st.title("Aplikasi Streamlit untuk Mengelola Data CSV")
+sns.set(style="darkgrid")
 
-# URL file CSV di GitHub
-url = "https://raw.githubusercontent.com/ashriazzr/submission-data-analyst-dicoding/refs/heads/main/dashboard/all_data.csv"
+# URL Dataset
+all_data_url = "https://raw.githubusercontent.com/ashriazzr/submission-data-analyst-dicoding/refs/heads/main/dashboard/all_data.csv"
+all_geo_url = "https://raw.githubusercontent.com/ashriazzr/submission-data-analyst-dicoding/refs/heads/main/dashboard/geo_data.csv"
 
-# Membaca CSV dari URL
-df = pd.read_csv(url)
+# Fungsi untuk memuat data
+@st.cache_data
+def load_data(url):
+    try:
+        df = pd.read_csv(url)
+        return df
+    except Exception as e:
+        st.error(f"Error loading data: {e}")
+        return pd.DataFrame()
 
-# Menampilkan data
-st.subheader("Data yang Diupload")
-st.write(df)
+# Load datasets
+all_df = load_data(all_data_url)
+geolocation = load_data(all_geo_url)
 
-# Fitur untuk filter data berdasarkan nilai dalam kolom tertentu
-column_to_filter = st.selectbox("Pilih kolom untuk filter:", df.columns)
+if all_df.empty or geolocation.empty:
+    st.stop()
 
-if column_to_filter:
-    # Menampilkan nilai unik dalam kolom yang dipilih
-    unique_values = df[column_to_filter].unique()
-    value_to_filter = st.selectbox(f"Pilih nilai untuk filter di kolom {column_to_filter}:", unique_values)
+# Preprocessing
+datetime_cols = [
+    "order_approved_at", "order_delivered_carrier_date", "order_delivered_customer_date",
+    "order_estimated_delivery_date", "order_purchase_timestamp", "shipping_limit_date"
+]
 
-    # Filter data berdasarkan pilihan pengguna
-    filtered_df = df[df[column_to_filter] == value_to_filter]
-    st.subheader(f"Data yang Terfilter berdasarkan {column_to_filter} = {value_to_filter}")
-    st.write(filtered_df)
+for col in datetime_cols:
+    all_df[col] = pd.to_datetime(all_df[col], errors="coerce")
 
-# Statistik deskriptif
-st.subheader("Statistik Deskriptif Data Numerik")
-numeric_columns = df.select_dtypes(include=['float64', 'int64']).columns
-if len(numeric_columns) > 0:
-    st.write(df[numeric_columns].describe())
-else:
-    st.write("Tidak ada kolom numerik untuk statistik deskriptif.")
+all_df.sort_values(by="order_approved_at", inplace=True)
+all_df.reset_index(drop=True, inplace=True)
 
-# Visualisasi Data
-st.subheader("Visualisasi Data")
-# Memilih kolom untuk visualisasi
-chart_column = st.selectbox("Pilih kolom untuk visualisasi:", df.columns)
+geolocation_unique = geolocation.drop_duplicates(subset="customer_unique_id")
 
-if chart_column:
-    # Plot data
-    fig, ax = plt.subplots()
-    if df[chart_column].dtype in ['int64', 'float64']:  # Numeric columns
-        ax.hist(df[chart_column].dropna(), bins=20, color='skyblue', edgecolor='black')
-        ax.set_title(f"Distribusi {chart_column}")
-        ax.set_xlabel(chart_column)
-        ax.set_ylabel('Frekuensi')
-    else:  # Categorical columns
-        value_counts = df[chart_column].value_counts()
-        ax.bar(value_counts.index, value_counts.values, color='lightcoral')
-        ax.set_title(f"Distribusi {chart_column}")
-        ax.set_xlabel(chart_column)
-        ax.set_ylabel('Jumlah')
-    
-    st.pyplot(fig)
+# Filter Date Range
+min_date = all_df["order_approved_at"].min()
+max_date = all_df["order_approved_at"].max()
 
-# Fitur rentang tanggal (jika ada kolom bertipe datetime)
-if 'date' in df.columns or 'tanggal' in df.columns:  # Asumsi ada kolom bertipe tanggal
-    df['tanggal'] = pd.to_datetime(df['tanggal'], errors='coerce')
-    start_date, end_date = st.date_input("Pilih rentang tanggal", 
-                                        [df['tanggal'].min(), df['tanggal'].max()])
-    filtered_df_by_date = df[(df['tanggal'] >= pd.to_datetime(start_date)) & 
-                             (df['tanggal'] <= pd.to_datetime(end_date))]
-    st.write(filtered_df_by_date)
+with st.sidebar:
+    st.markdown("## Filter by Date Range")
+    start_date, end_date = st.date_input(
+        "Select Date Range",
+        value=[min_date, max_date],
+        min_value=min_date,
+        max_value=max_date
+    )
 
-# Tabel Pivot
-st.subheader("Tabel Pivot")
-# Pilih dua kolom untuk pivot
-pivot_columns = df.select_dtypes(include=['object', 'category']).columns
-pivot_index = st.selectbox("Pilih kolom untuk baris pivot:", pivot_columns)
-pivot_columns_2 = st.selectbox("Pilih kolom untuk kolom pivot:", pivot_columns)
+# Validasi tanggal
+if start_date > end_date:
+    st.error("Start date cannot be greater than end date.")
+    st.stop()
 
-if pivot_index and pivot_columns_2:
-    pivot_df = df.pivot_table(index=pivot_index, columns=pivot_columns_2, aggfunc='count', fill_value=0)
-    st.write(pivot_df)
+# Filter Data
+main_df = all_df[
+    (all_df["order_approved_at"] >= pd.Timestamp(start_date)) &
+    (all_df["order_approved_at"] <= pd.Timestamp(end_date))
+]
 
-# Menyediakan tombol untuk mendownload data yang terfilter
-if st.button('Download Data yang Terfilter'):
-    filtered_file = filtered_df.to_csv(index=False)
-    st.download_button(label="Download CSV", data=filtered_file, file_name="filtered_data.csv", mime="text/csv")
+# Fungsi analisis
+@st.cache_data
+def create_daily_orders_df(df):
+    return df.groupby(df["order_approved_at"].dt.date).size().reset_index(name="order_count")
 
-# Menyediakan tombol untuk mendownload data asli
-if st.button('Download Data Asli'):
-    original_file = df.to_csv(index=False)
-    st.download_button(label="Download CSV Asli", data=original_file, file_name="all_data.csv", mime="text/csv")
+@st.cache_data
+def create_sum_spend_df(df):
+    return df.groupby(df["order_approved_at"].dt.date)["payment_value"].sum().reset_index(name="total_spend")
+
+@st.cache_data
+def create_sum_order_items_df(df):
+    return df.groupby("product_category_name_english").size().reset_index(name="product_count")
+
+@st.cache_data
+def review_score_analysis(df):
+    return df["review_score"].value_counts().sort_index()
+
+@st.cache_data
+def customer_state_analysis(df):
+    return df["customer_state"].value_counts()
+
+# Analisis dan Visualisasi
+st.title("E-Commerce Public Data Analysis")
+
+# Daily Orders Analysis
+st.subheader("Daily Orders Delivered")
+daily_orders_df = create_daily_orders_df(main_df)
+fig, ax = plt.subplots(figsize=(10, 6))
+sns.lineplot(data=daily_orders_df, x="order_approved_at", y="order_count", marker="o", ax=ax)
+ax.set_title("Daily Orders Delivered Over Time")
+ax.set_xlabel("Date")
+ax.set_ylabel("Number of Orders")
+plt.xticks(rotation=45)
+st.pyplot(fig)
+
+# Customer Spend Analysis
+st.subheader("Customer Spending Over Time")
+sum_spend_df = create_sum_spend_df(main_df)
+fig, ax = plt.subplots(figsize=(10, 6))
+sns.lineplot(data=sum_spend_df, x="order_approved_at", y="total_spend", marker="o", ax=ax)
+ax.set_title("Total Spending by Customers")
+ax.set_xlabel("Date")
+ax.set_ylabel("Total Spending (Currency)")
+plt.xticks(rotation=45)
+st.pyplot(fig)
+
+# Top Product Categories
+st.subheader("Top Product Categories")
+sum_order_items_df = create_sum_order_items_df(main_df)
+fig, ax = plt.subplots(figsize=(10, 6))
+sns.barplot(
+    data=sum_order_items_df.sort_values(by="product_count", ascending=False).head(5),
+    x="product_count",
+    y="product_category_name_english",
+    palette="viridis",
+    ax=ax
+)
+ax.set_title("Top 5 Most Sold Product Categories")
+ax.set_xlabel("Number of Products Sold")
+ax.set_ylabel("Product Category")
+st.pyplot(fig)
+
+# Review Score Distribution
+st.subheader("Review Score Distribution")
+review_scores = review_score_analysis(main_df)
+fig, ax = plt.subplots(figsize=(10, 6))
+sns.barplot(x=review_scores.index, y=review_scores.values, palette="viridis", ax=ax)
+ax.set_title("Distribution of Customer Review Scores")
+ax.set_xlabel("Review Score")
+ax.set_ylabel("Number of Reviews")
+st.pyplot(fig)
+
+# Customer Demographics by State
+st.subheader("Customer Demographics by State")
+state_analysis = customer_state_analysis(main_df)
+fig, ax = plt.subplots(figsize=(10, 6))
+sns.barplot(x=state_analysis.index, y=state_analysis.values, palette="viridis", ax=ax)
+ax.set_title("Customer Distribution by State")
+ax.set_xlabel("State")
+ax.set_ylabel("Number of Customers")
+plt.xticks(rotation=45)
+st.pyplot(fig)
+
+st.markdown("---")
+st.markdown("Data visualization and insights generated using Streamlit.")
