@@ -88,10 +88,3 @@ if st.button('Download Data yang Terfilter'):
 if st.button('Download Data Asli'):
     original_file = df.to_csv(index=False)
     st.download_button(label="Download CSV Asli", data=original_file, file_name="all_data.csv", mime="text/csv")
-
-
-modifikasi ini menjadi visual yang menjawab pertanyaan ini, buat fitur simple
-
-
-Pertanyaan 1 : Apakah cuaca (weather, temperature, humidity) memengaruhi jumlah penyewaan sepeda?
-Pertanyaan 2 : Bagaimana tren penyewaan sepeda berdasarkan musim (season)?
