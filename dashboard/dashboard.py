@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 # Judul aplikasi
-st.title("Aplikasi Streamlit untuk Mengelola Data CSV")
+st.title("Aplikasi Streamlit untuk Mengelola Data Penyewaan Sepeda")
 
 # URL file CSV di GitHub
 url = "https://raw.githubusercontent.com/ashriazzr/submission-data-analyst-dicoding/refs/heads/main/dashboard/all_data.csv"
@@ -16,77 +16,54 @@ df = pd.read_csv(url)
 st.subheader("Data yang Diupload")
 st.write(df)
 
-# Fitur untuk filter data berdasarkan nilai dalam kolom tertentu
-column_to_filter = st.selectbox("Pilih kolom untuk filter:", df.columns)
+# Pertanyaan 1: Apakah cuaca (weather, temperature, humidity) memengaruhi jumlah penyewaan sepeda?
+st.subheader("Apakah cuaca (weather, temperature, humidity) memengaruhi jumlah penyewaan sepeda?")
+weather_columns = ['weather', 'temperature', 'humidity', 'count']  # Kolom yang relevan
+if all(col in df.columns for col in weather_columns):
+    # Visualisasi hubungan antara cuaca, suhu, kelembaban, dan jumlah penyewaan sepeda
+    fig, ax = plt.subplots(1, 3, figsize=(15, 5))
 
-if column_to_filter:
-    # Menampilkan nilai unik dalam kolom yang dipilih
-    unique_values = df[column_to_filter].unique()
-    value_to_filter = st.selectbox(f"Pilih nilai untuk filter di kolom {column_to_filter}:", unique_values)
+    # Visualisasi suhu terhadap jumlah penyewaan sepeda
+    sns.scatterplot(x=df['temperature'], y=df['count'], ax=ax[0], color='b')
+    ax[0].set_title("Suhu vs Penyewaan Sepeda")
+    ax[0].set_xlabel("Suhu (°C)")
+    ax[0].set_ylabel("Jumlah Penyewaan Sepeda")
 
-    # Filter data berdasarkan pilihan pengguna
-    filtered_df = df[df[column_to_filter] == value_to_filter]
-    st.subheader(f"Data yang Terfilter berdasarkan {column_to_filter} = {value_to_filter}")
-    st.write(filtered_df)
+    # Visualisasi kelembaban terhadap jumlah penyewaan sepeda
+    sns.scatterplot(x=df['humidity'], y=df['count'], ax=ax[1], color='g')
+    ax[1].set_title("Kelembaban vs Penyewaan Sepeda")
+    ax[1].set_xlabel("Kelembaban (%)")
+    ax[1].set_ylabel("Jumlah Penyewaan Sepeda")
 
-# Statistik deskriptif
-st.subheader("Statistik Deskriptif Data Numerik")
-numeric_columns = df.select_dtypes(include=['float64', 'int64']).columns
-if len(numeric_columns) > 0:
-    st.write(df[numeric_columns].describe())
-else:
-    st.write("Tidak ada kolom numerik untuk statistik deskriptif.")
+    # Visualisasi cuaca terhadap jumlah penyewaan sepeda
+    sns.boxplot(x=df['weather'], y=df['count'], ax=ax[2], color='r')
+    ax[2].set_title("Cuaca vs Penyewaan Sepeda")
+    ax[2].set_xlabel("Cuaca")
+    ax[2].set_ylabel("Jumlah Penyewaan Sepeda")
 
-# Visualisasi Data
-st.subheader("Visualisasi Data")
-# Memilih kolom untuk visualisasi
-chart_column = st.selectbox("Pilih kolom untuk visualisasi:", df.columns)
-
-if chart_column:
-    # Plot data
-    fig, ax = plt.subplots()
-    if df[chart_column].dtype in ['int64', 'float64']:  # Numeric columns
-        ax.hist(df[chart_column].dropna(), bins=20, color='skyblue', edgecolor='black')
-        ax.set_title(f"Distribusi {chart_column}")
-        ax.set_xlabel(chart_column)
-        ax.set_ylabel('Frekuensi')
-    else:  # Categorical columns
-        value_counts = df[chart_column].value_counts()
-        ax.bar(value_counts.index, value_counts.values, color='lightcoral')
-        ax.set_title(f"Distribusi {chart_column}")
-        ax.set_xlabel(chart_column)
-        ax.set_ylabel('Jumlah')
-    
     st.pyplot(fig)
+else:
+    st.write("Data cuaca atau penyewaan sepeda tidak lengkap.")
 
-# Fitur rentang tanggal (jika ada kolom bertipe datetime)
-if 'date' in df.columns or 'tanggal' in df.columns:  # Asumsi ada kolom bertipe tanggal
-    df['tanggal'] = pd.to_datetime(df['tanggal'], errors='coerce')
-    start_date, end_date = st.date_input("Pilih rentang tanggal", 
-                                        [df['tanggal'].min(), df['tanggal'].max()])
-    filtered_df_by_date = df[(df['tanggal'] >= pd.to_datetime(start_date)) & 
-                             (df['tanggal'] <= pd.to_datetime(end_date))]
-    st.write(filtered_df_by_date)
-
-# Tabel Pivot
-st.subheader("Tabel Pivot")
-# Pilih dua kolom untuk pivot
-pivot_columns = df.select_dtypes(include=['object', 'category']).columns
-pivot_index = st.selectbox("Pilih kolom untuk baris pivot:", pivot_columns)
-pivot_columns_2 = st.selectbox("Pilih kolom untuk kolom pivot:", pivot_columns)
-
-if pivot_index and pivot_columns_2:
-    pivot_df = df.pivot_table(index=pivot_index, columns=pivot_columns_2, aggfunc='count', fill_value=0)
-    st.write(pivot_df)
+# Pertanyaan 2: Bagaimana tren penyewaan sepeda berdasarkan musim (season)?
+st.subheader("Bagaimana tren penyewaan sepeda berdasarkan musim?")
+if 'season' in df.columns and 'count' in df.columns:
+    # Visualisasi tren penyewaan sepeda berdasarkan musim
+    plt.figure(figsize=(8, 5))
+    sns.boxplot(x=df['season'], y=df['count'], palette='Set2')
+    plt.title("Tren Penyewaan Sepeda Berdasarkan Musim")
+    plt.xlabel("Musim")
+    plt.ylabel("Jumlah Penyewaan Sepeda")
+    st.pyplot(plt)
+else:
+    st.write("Data musim atau penyewaan sepeda tidak lengkap.")
 
 # Menyediakan tombol untuk mendownload data yang terfilter
 if st.button('Download Data yang Terfilter'):
-    filtered_file = filtered_df.to_csv(index=False)
+    filtered_file = df.to_csv(index=False)
     st.download_button(label="Download CSV", data=filtered_file, file_name="filtered_data.csv", mime="text/csv")
 
 # Menyediakan tombol untuk mendownload data asli
 if st.button('Download Data Asli'):
     original_file = df.to_csv(index=False)
     st.download_button(label="Download CSV Asli", data=original_file, file_name="all_data.csv", mime="text/csv")
-
-
