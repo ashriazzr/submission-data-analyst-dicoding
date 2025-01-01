@@ -9,7 +9,7 @@ def load_data(url):
     return pd.read_csv(url)
 
 # URL dataset utama
-main_url = "https://raw.githubusercontent.com/hadarah1/public/main/bike_rental_hour.csv"
+main_url = "https://raw.githubusercontent.com/ashriazzr/submission-data-analyst-dicoding/refs/heads/main/dashboard/all_data.csv"
 hour_url = "https://raw.githubusercontent.com/hadarah1/public/main/bike_rental_hour.csv"
 day_url = "https://raw.githubusercontent.com/hadarah1/public/main/bike_rental_day.csv"
 
