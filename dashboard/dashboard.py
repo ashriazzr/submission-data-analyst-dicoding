@@ -4,87 +4,68 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 # Judul aplikasi
-st.title("Aplikasi Streamlit untuk Analisis Penyewaan Sepeda")
+st.title("Analisis Penyewaan Sepeda berdasarkan Data Cuaca dan Musim")
 
 # URL file CSV di GitHub
 url = "https://raw.githubusercontent.com/ashriazzr/submission-data-analyst-dicoding/refs/heads/main/dashboard/all_data.csv"
 
 # Membaca CSV dari URL
 df = pd.read_csv(url)
-df['dteday'] = pd.to_datetime(df['dteday'], errors='coerce')  # Pastikan kolom tanggal diformat dengan benar
 
-# Menambahkan kolom untuk Tahun, Bulan, dan Hari
-df['year'] = df['dteday'].dt.year
-df['month'] = df['dteday'].dt.month
-df['day'] = df['dteday'].dt.day
+# Menampilkan data secara keseluruhan
+st.subheader("Data Penyewaan Sepeda")
+st.write(df)
 
-# Fitur filter untuk visualisasi
-st.sidebar.header("Filter Data Visualisasi")
+# Konversi kolom 'dteday' ke format datetime jika tersedia
+if 'dteday' in df.columns:
+    df['dteday'] = pd.to_datetime(df['dteday'], errors='coerce')
 
-# Filter berdasarkan rentang tanggal
-start_date, end_date = st.sidebar.date_input("Pilih rentang tanggal", 
-                                              [df['dteday'].min(), df['dteday'].max()])
-df = df[(df['dteday'] >= pd.to_datetime(start_date)) & 
-        (df['dteday'] <= pd.to_datetime(end_date))]
+# Pertanyaan 1: Apakah Cuaca (Weather, Temperature, Humidity) Memengaruhi Jumlah Penyewaan Sepeda?
+st.subheader("1. Pengaruh Cuaca terhadap Penyewaan Sepeda")
 
-# Filter berdasarkan tahun
-years = df['year'].unique()
-selected_years = st.sidebar.multiselect("Pilih Tahun", options=years, default=years)
-df = df[df['year'].isin(selected_years)]
+# Fitur filter untuk cuaca (weathersit) dan rentang suhu/humidity
+st.sidebar.header("Filter untuk Visualisasi Cuaca")
+weathersit_options = df['weathersit'].unique()
+selected_weather = st.sidebar.multiselect("Pilih jenis cuaca:", weathersit_options, default=weathersit_options)
 
-# Filter berdasarkan bulan
-months = range(1, 13)
-selected_months = st.sidebar.multiselect("Pilih Bulan", options=months, default=months)
-df = df[df['month'].isin(selected_months)]
+temp_range = st.sidebar.slider("Pilih rentang suhu (°C):", 
+                                float(df['temp'].min()), 
+                                float(df['temp'].max()), 
+                                (float(df['temp'].min()), float(df['temp'].max())))
 
-# Filter berdasarkan hari
-days = range(1, 32)
-selected_days = st.sidebar.multiselect("Pilih Hari", options=days, default=days)
-df = df[df['day'].isin(selected_days)]
+humidity_range = st.sidebar.slider("Pilih rentang kelembapan (%):", 
+                                    float(df['hum'].min()), 
+                                    float(df['hum'].max()), 
+                                    (float(df['hum'].min()), float(df['hum'].max())))
 
-# Filter berdasarkan jam
-hours = range(0, 24)
-selected_hours = st.sidebar.multiselect("Pilih Jam", options=hours, default=hours)
-df = df[df['hr'].isin(selected_hours)]
+# Filter data berdasarkan pilihan
+filtered_df_1 = df[(df['weathersit'].isin(selected_weather)) &
+                   (df['temp'] >= temp_range[0]) & (df['temp'] <= temp_range[1]) &
+                   (df['hum'] >= humidity_range[0]) & (df['hum'] <= humidity_range[1])]
 
-# Filter berdasarkan hari libur
-holiday_options = df['holiday'].unique()
-selected_holiday = st.sidebar.selectbox("Pilih Hari Libur (0: Tidak, 1: Ya)", options=holiday_options)
-df = df[df['holiday'] == selected_holiday]
-
-# Filter berdasarkan hari kerja
-workingday_options = df['workingday'].unique()
-selected_workingday = st.sidebar.selectbox("Pilih Hari Kerja (0: Tidak, 1: Ya)", options=workingday_options)
-df = df[df['workingday'] == selected_workingday]
-
-# Filter berdasarkan cuaca
-weather_options = df['weathersit'].unique()
-selected_weather = st.sidebar.multiselect("Pilih Cuaca (Weather)", options=weather_options, default=weather_options)
-df = df[df['weathersit'].isin(selected_weather)]
-
-# Filter berdasarkan musim
-season_options = df['season'].unique()
-selected_season = st.sidebar.multiselect("Pilih Musim (Season)", options=season_options, default=season_options)
-df = df[df['season'].isin(selected_season)]
-
-# Menjawab Pertanyaan 1: Apakah Cuaca (Weather, Temperature, Humidity) Memengaruhi Jumlah Penyewaan Sepeda?
-st.subheader("Pengaruh Cuaca terhadap Penyewaan Sepeda")
-
-fig, ax = plt.subplots(figsize=(12, 8))
-sns.scatterplot(x=df['temp'], y=df['cnt'], hue=df['weathersit'], palette='coolwarm', s=50, alpha=0.7, ax=ax)
-ax.set_title("Hubungan antara Suhu dan Jumlah Penyewaan Sepeda berdasarkan Cuaca", fontsize=18)
+# Visualisasi scatter plot
+fig, ax = plt.subplots(figsize=(10, 6))
+sns.scatterplot(data=filtered_df_1, x='temp', y='cnt', hue='weathersit', palette='coolwarm', ax=ax)
+ax.set_title("Hubungan antara Suhu dan Jumlah Penyewaan Sepeda berdasarkan Cuaca", fontsize=16)
 ax.set_xlabel('Suhu (°C)', fontsize=14)
 ax.set_ylabel('Jumlah Penyewaan Sepeda', fontsize=14)
-ax.legend(title='Cuaca', fontsize=12)
 st.pyplot(fig)
 
-# Menjawab Pertanyaan 2: Bagaimana Tren Penyewaan Sepeda Berdasarkan Musim?
-st.subheader("Tren Penyewaan Sepeda Berdasarkan Musim")
+# Pertanyaan 2: Bagaimana Tren Penyewaan Sepeda Berdasarkan Musim?
+st.subheader("2. Tren Penyewaan Sepeda Berdasarkan Musim")
 
-fig, ax = plt.subplots(figsize=(12, 8))
-sns.boxplot(x=df['season'], y=df['cnt'], palette='Set2', ax=ax)
-ax.set_title("Tren Penyewaan Sepeda Berdasarkan Musim", fontsize=18)
+# Fitur filter untuk musim (season)
+st.sidebar.header("Filter untuk Visualisasi Musim")
+season_options = df['season'].unique()
+selected_seasons = st.sidebar.multiselect("Pilih musim:", season_options, default=season_options)
+
+# Filter data berdasarkan pilihan musim
+filtered_df_2 = df[df['season'].isin(selected_seasons)]
+
+# Visualisasi boxplot berdasarkan musim
+fig, ax = plt.subplots(figsize=(10, 6))
+sns.boxplot(data=filtered_df_2, x='season', y='cnt', palette='Set2', ax=ax)
+ax.set_title("Tren Penyewaan Sepeda Berdasarkan Musim", fontsize=16)
 ax.set_xlabel('Musim', fontsize=14)
 ax.set_ylabel('Jumlah Penyewaan Sepeda', fontsize=14)
-ax.set_xticklabels(['Musim Semi', 'Musim Panas', 'Musim Gugur', 'Musim Dingin'], fontsize=12)
 st.pyplot(fig)
