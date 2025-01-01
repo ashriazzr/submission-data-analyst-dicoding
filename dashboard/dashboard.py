@@ -32,19 +32,21 @@ df = df[df['season'].isin(selected_season)]
 # Menjawab Pertanyaan 1: Apakah Cuaca (Weather, Temperature, Humidity) Memengaruhi Jumlah Penyewaan Sepeda?
 st.subheader("Pengaruh Cuaca terhadap Penyewaan Sepeda")
 
-fig, ax = plt.subplots(figsize=(10, 6))
-sns.scatterplot(x=df['temp'], y=df['cnt'], hue=df['weathersit'], palette='coolwarm', ax=ax)
-ax.set_title("Hubungan antara Suhu dan Jumlah Penyewaan Sepeda berdasarkan Cuaca", fontsize=16)
-ax.set_xlabel('Suhu (\u00b0C)', fontsize=14)
+fig, ax = plt.subplots(figsize=(12, 8))
+sns.scatterplot(x=df['temp'], y=df['cnt'], hue=df['weathersit'], palette='coolwarm', s=50, alpha=0.7, ax=ax)
+ax.set_title("Hubungan antara Suhu dan Jumlah Penyewaan Sepeda berdasarkan Cuaca", fontsize=18)
+ax.set_xlabel('Suhu (°C)', fontsize=14)
 ax.set_ylabel('Jumlah Penyewaan Sepeda', fontsize=14)
+ax.legend(title='Cuaca', fontsize=12)
 st.pyplot(fig)
 
 # Menjawab Pertanyaan 2: Bagaimana Tren Penyewaan Sepeda Berdasarkan Musim?
 st.subheader("Tren Penyewaan Sepeda Berdasarkan Musim")
 
-fig, ax = plt.subplots(figsize=(10, 6))
+fig, ax = plt.subplots(figsize=(12, 8))
 sns.boxplot(x=df['season'], y=df['cnt'], palette='Set2', ax=ax)
-ax.set_title("Tren Penyewaan Sepeda Berdasarkan Musim", fontsize=16)
+ax.set_title("Tren Penyewaan Sepeda Berdasarkan Musim", fontsize=18)
 ax.set_xlabel('Musim', fontsize=14)
 ax.set_ylabel('Jumlah Penyewaan Sepeda', fontsize=14)
+ax.set_xticklabels(['Musim Semi', 'Musim Panas', 'Musim Gugur', 'Musim Dingin'], fontsize=12)
 st.pyplot(fig)
