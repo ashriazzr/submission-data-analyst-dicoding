@@ -2,7 +2,7 @@
 
 Bike Sharing Dataset Dashboard
 
-[Bike Sharing Dataset Dashboard Streamlit App](https://submission-data-analyst-dicoding-xwazlqf6qyk85spzvagepz.streamlit.app/)
+[Bike Sharing Dataset Dashboard Streamlit App](https://submission-data-analyst-dicoding-24.streamlit.app/)
 
 ## Table of Contents
 
