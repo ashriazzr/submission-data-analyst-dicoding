@@ -61,3 +61,5 @@ Access the dashboard in your web browser at `http://localhost:8501`.
 ## Data Sources
 
 The project uses Bike Sharing Dataset from [Belajar Analisis Data dengan Python's Final Project](https://drive.google.com/file/d/1RaBmV6Q6FYWU4HWZs80Suqd7KQC34diQ/view) offered by [Dicoding](https://www.dicoding.com/).
+
+© Ashri Aulia Azzahra 2024. All rights reserved.
