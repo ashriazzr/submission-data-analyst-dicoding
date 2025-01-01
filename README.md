@@ -2,7 +2,7 @@
 
 Bike Sharing Dataset Dashboard
 
-[Bike Sharing Dataset Dashboard Streamlit App] (https://submission-data-analyst-dicoding-xwazlqf6qyk85spzvagepz.streamlit.app/)
+[Bike Sharing Dataset Dashboard Streamlit App](https://submission-data-analyst-dicoding-xwazlqf6qyk85spzvagepz.streamlit.app/)
 
 ## Table of Contents
 
@@ -14,7 +14,7 @@ Bike Sharing Dataset Dashboard
 
 ## Overview
 
-This project is a data analysis and visualization project focused on Bike Sharing Dataset. It includes code for data wrangling, exploratory data analysis (EDA), and a Streamlit dashboard for interactive data exploration. This project aims to analyze data on the Bike Sharing Dataset.
+Proyek ini melibatkan analisis dan visualisasi Dataset Bike Sharing, dengan mencakup teknik-teknik untuk pengolahan data, analisis data eksploratif (EDA), dan pengembangan dasbor interaktif menggunakan Streamlit untuk mempermudah eksplorasi data. Tujuan proyek ini adalah untuk mendapatkan wawasan dari data Bike Sharing melalui analisis yang komprehensif.
 
 ## Project Structure
 
@@ -60,4 +60,4 @@ Access the dashboard in your web browser at `http://localhost:8501`.
 
 ## Data Sources
 
-The project uses Bike Sharing Dataset from [Belajar Analisis Data dengan Python's Final Project](https://www.kaggle.com/datasets/lakshmi25npathi/bike-sharing-dataset) offered by [Dicoding](https://www.dicoding.com/).
+The project uses Bike Sharing Dataset from [Belajar Analisis Data dengan Python's Final Project](https://drive.google.com/file/d/1RaBmV6Q6FYWU4HWZs80Suqd7KQC34diQ/view) offered by [Dicoding](https://www.dicoding.com/).
