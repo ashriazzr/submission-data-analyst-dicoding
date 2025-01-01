@@ -36,7 +36,9 @@ st.write(main_data.head())
 # Sidebar untuk filter utama
 st.sidebar.header("Filter Options")
 selected_weather = st.sidebar.multiselect(
-    "Select Weather Conditions:", options=main_data['weathersit'].unique(), default=main_data['weathersit'].unique()
+    "Select Weather Conditions:", 
+    options=main_data['weathersit'].unique(), 
+    default=main_data['weathersit'].unique()
 )
 temp_range = st.sidebar.slider(
     "Select Temperature Range:", 
