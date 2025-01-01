@@ -1,112 +1,131 @@
-import streamlit as st
-import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
-
-# Fungsi untuk memuat data dengan caching
-@st.cache_data
-def load_data(url):
-    return pd.read_csv(url)
 
 # URL dataset utama
-main_url = "https://raw.githubusercontent.com/ashriazzr/submission-data-analyst-dicoding/refs/heads/main/dashboard/all_data.csv"
-hour_url = "https://raw.githubusercontent.com/ashriazzr/submission-data-analyst-dicoding/refs/heads/main/data/hour.csv"
-day_url = "https://raw.githubusercontent.com/ashriazzr/submission-data-analyst-dicoding/refs/heads/main/data/day.csv"
+import streamlit as st
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
 
-# Memuat dataset
-main_data = load_data(main_url)
-hour_data = load_data(hour_url)
-day_data = load_data(day_url)
+# Title of the dashboard
+st.title("✨ Bike Sharing Insights with Clustering")
 
-# Konversi kolom 'weathersit' dan 'season' menjadi kategori yang dapat dibaca
-weather_mapping = {1: 'Clear', 2: 'Mist', 3: 'Light Rain/Snow', 4: 'Heavy Rain/Snow'}
-season_mapping = {1: 'Spring', 2: 'Summer', 3: 'Fall', 4: 'Winter'}
+# Load the dataset using caching for better performance
+@st.cache_data
+def load_data(file_path):
+    return pd.read_csv(file_path)
 
-main_data['weathersit'] = main_data['weathersit'].map(weather_mapping)
-main_data['season'] = main_data['season'].map(season_mapping)
+# Load the dataset
+data = "https://raw.githubusercontent.com/ashriazzr/submission-data-analyst-dicoding/refs/heads/main/dashboard/all_data.csv"
 
-# Aplikasi Streamlit
-st.title("Bike Rental Analysis Based on Weather and Season")
+# Sidebar filters
+st.sidebar.header('🔍 Filter Data')
 
-# Tampilkan dataset utama
-st.header("Dataset Overview")
-st.write("Preview of the dataset:")
-st.write(main_data.head())
+# Filter options for season and month
+selected_seasons = st.sidebar.multiselect('Select Season Day', data['season_day'].unique(), data['season_day'].unique())
+selected_months = st.sidebar.multiselect('Select Month Hour', data['mnth_hour'].unique(), data['mnth_hour'].unique())
 
-# Sidebar untuk filter utama
-st.sidebar.header("Filter Options")
-selected_weather = st.sidebar.multiselect(
-    "Select Weather Conditions:", 
-    options=main_data['weathersit'].unique(), 
-    default=main_data['weathersit'].unique()
-)
-temp_range = st.sidebar.slider(
-    "Select Temperature Range:", 
-    float(main_data['temp'].min()), 
-    float(main_data['temp'].max()), 
-    (float(main_data['temp'].min()), float(main_data['temp'].max()))
-)
-hum_range = st.sidebar.slider(
-    "Select Humidity Range:", 
-    float(main_data['hum'].min()), 
-    float(main_data['hum'].max()), 
-    (float(main_data['hum'].min()), float(main_data['hum'].max()))
-)
+# Button to reset filters
+if st.sidebar.button("Reset Filters"):
+    selected_seasons = data['season_day'].unique()
+    selected_months = data['mnth_hour'].unique()
 
-# Filter data berdasarkan input utama
-filtered_data = main_data[
-    (main_data['weathersit'].isin(selected_weather)) &
-    (main_data['temp'].between(temp_range[0], temp_range[1])) &
-    (main_data['hum'].between(hum_range[0], hum_range[1]))
-]
+# Filter data based on user input
+filtered_data = data[(data['season_day'].isin(selected_seasons)) & (data['mnth_hour'].isin(selected_months))]
 
-# Sidebar untuk filter tambahan
-st.sidebar.header("Additional Filters")
-cnt_range = st.sidebar.slider(
-    "Select Range of Bike Rentals (cnt):",
-    int(main_data['cnt'].min()),
-    int(main_data['cnt'].max()),
-    (int(main_data['cnt'].min()), int(main_data['cnt'].max()))
-)
+# Check if filtered data is empty
+if filtered_data.empty:
+    st.warning("❌ No data matches the selected criteria. Try different options.")
+else:
+    # Analyzing the effect of temperature and humidity on rentals during summer
+    st.header("🌞 Temperature & Humidity Impact on Summer Rentals")
+    summer_data = filtered_data[(filtered_data['mnth_hour'] == 7) | (filtered_data['mnth_hour'] == 8)]
 
-# Filter data berdasarkan input tambahan
-filtered_data = filtered_data[
-    (filtered_data['cnt'].between(cnt_range[0], cnt_range[1]))
-]
+    # Display maximum rentals during the summer
+    max_summer_rentals = summer_data['cnt_hour'].max()
+    st.markdown(f"<h3 style='font-size: 24px;'>Max Rentals in Summer: {max_summer_rentals}</h3>", unsafe_allow_html=True)
 
-# Visualisasi 1: Pengaruh Cuaca terhadap Penyewaan Sepeda (dengan range cnt)
-st.header("Effect of Weather on Bike Rentals (Filtered by Range)")
-st.write(f"Scatter plot of Temperature vs. Bike Rentals (cnt range: {cnt_range[0]} - {cnt_range[1]}):")
+    # Improved visualization: Violin plot of temperature vs bike rentals to show distribution
+    fig, ax = plt.subplots()
+    sns.violinplot(x='temp_hour', y='cnt_hour', data=summer_data, ax=ax, palette='Oranges', scale='count')
+    ax.set_title("Distribution of Rentals vs Temperature in Summer", fontsize=14)
+    ax.set_xlabel("Temperature (Normalized)", fontsize=12)
+    ax.set_ylabel("Number of Rentals", fontsize=12)
+    st.pyplot(fig)
 
-fig1, ax1 = plt.subplots(figsize=(8, 6))
-sns.scatterplot(
-    data=filtered_data, x='temp', y='cnt', hue='weathersit', palette='Set2', ax=ax1
-)
-ax1.set_title("Temperature vs. Bike Rentals by Weather Condition")
-ax1.set_xlabel("Temperature (Normalized)")
-ax1.set_ylabel("Bike Rentals")
-st.pyplot(fig1)
+    # Monthly rental trends with improved visualization: Area plot for trend representation
+    st.header("📈 Monthly Rental Trends (January to December)")
+    monthly_avg_rentals = filtered_data.groupby('mnth_hour')['cnt_hour'].mean()
 
-# Visualisasi 2: Tren Penyewaan Berdasarkan Musim (dengan range cnt)
-st.header("Bike Rentals by Season (Filtered by Range)")
-st.write(f"Boxplot of Bike Rentals by Season (cnt range: {cnt_range[0]} - {cnt_range[1]}):")
+    # Display average rentals for selected months
+    selected_month_avg_rentals = monthly_avg_rentals.mean()
+    st.markdown(f"<h3 style='font-size: 24px;'>Average Rentals for Selected Months: {selected_month_avg_rentals:.2f}</h3>", unsafe_allow_html=True)
 
-fig2, ax2 = plt.subplots(figsize=(8, 6))
-sns.boxplot(data=filtered_data, x='season', y='cnt', palette='Set3', ax=ax2)
-ax2.set_title("Distribution of Bike Rentals by Season")
-ax2.set_xlabel("Season")
-ax2.set_ylabel("Bike Rentals")
-st.pyplot(fig2)
+    # Area chart for monthly rental trends
+    fig2, ax2 = plt.subplots()
+    monthly_avg_rentals.plot(kind='area', ax=ax2, color='skyblue', alpha=0.4, linewidth=3)
+    ax2.set_title("Monthly Average Bike Rentals", fontsize=14)
+    ax2.set_xlabel("Month", fontsize=12)
+    ax2.set_ylabel("Average Rentals", fontsize=12)
+    st.pyplot(fig2)
 
-# Statistik Deskriptif Dataset Hour dan Day
-st.header("Descriptive Statistics of Hourly and Daily Data")
-if st.checkbox("Show Hourly Dataset Statistics"):
-    st.write(hour_data.describe())
-if st.checkbox("Show Daily Dataset Statistics"):
-    st.write(day_data.describe())
+    # Rental trends based on weekdays and weather conditions using a more advanced stacked bar plot
+    st.header("☀️ Rentals by Weather and Workdays")
+    weekend_rentals = filtered_data[filtered_data['workingday_hour'] == 0]['cnt_hour'].sum()
+    weekday_rentals = filtered_data[filtered_data['workingday_hour'] == 1]['cnt_hour'].sum()
+    st.markdown(f"<h3 style='font-size: 24px;'>Weekend Rentals: {weekend_rentals}</h3>", unsafe_allow_html=True)
+    st.markdown(f"<h3 style='font-size: 24px;'>Weekday Rentals: {weekday_rentals}</h3>", unsafe_allow_html=True)
 
-# Insight Data
-st.header("Key Insights")
-st.write("1. Bike rentals tend to increase with temperature, but weather conditions also play a significant role.")
-st.write("2. Rentals vary significantly by season, with Fall showing higher demand on average.")
-st.write("3. Further analysis could explore the impact of holidays and working days on bike rentals.")
+    # Stacked bar chart for rentals
+    fig3, ax3 = plt.subplots()
+    sns.barplot(x=['Weekend', 'Weekday'], y=[weekend_rentals, weekday_rentals], ax=ax3, palette="coolwarm", dodge=False)
+    ax3.set_title("Bike Rentals on Weekdays vs Weekends", fontsize=14)
+    ax3.set_xlabel("Day Type", fontsize=12)
+    ax3.set_ylabel("Number of Rentals", fontsize=12)
+    st.pyplot(fig3)
+
+    # Heatmap of average rentals by temperature and humidity with an improved color scheme
+    st.header("🌧️ Average Rentals by Temperature & Humidity")
+    filtered_data['temp_category'] = pd.cut(filtered_data['temp_hour'], bins=3, labels=['Low', 'Medium', 'High'])
+    filtered_data['hum_category'] = pd.cut(filtered_data['hum_hour'], bins=3, labels=['Low', 'Medium', 'High'])
+    rentals_by_temp_hum = filtered_data.groupby(['temp_category', 'hum_category'], observed=True)['cnt_hour'].mean().unstack()
+
+    # Display max rentals based on temperature and humidity categories
+    max_avg_rentals_temp_hum = rentals_by_temp_hum.stack().max()
+    st.markdown(f"<h3 style='font-size: 24px;'>Max Average Rentals by Temp & Humidity: {max_avg_rentals_temp_hum:.2f}</h3>", unsafe_allow_html=True)
+
+    # Heatmap with a refined color palette
+    fig4, ax4 = plt.subplots(figsize=(10, 6))
+    sns.heatmap(rentals_by_temp_hum, annot=True, cmap='YlGnBu', fmt=".2f", ax=ax4, linewidths=1)
+    ax4.set_title('Average Rentals by Temperature and Humidity', fontsize=14)
+    ax4.set_xlabel('Humidity Category', fontsize=12)
+    ax4.set_ylabel('Temperature Category', fontsize=12)
+    st.pyplot(fig4)
+
+    # K-means clustering with a unique visualization: Pairplot
+    st.header("📊 Clustering: Grouping Rentals by Temp & Humidity")
+
+    # Selecting features for clustering
+    cluster_data = filtered_data[['temp_hour', 'hum_hour', 'cnt_hour']].dropna()
+
+    # Normalize the data before clustering
+    scaler = StandardScaler()
+    scaled_data = scaler.fit_transform(cluster_data)
+
+    # Perform clustering with K-means (3 clusters)
+    kmeans = KMeans(n_clusters=3, random_state=42)
+    cluster_labels = kmeans.fit_predict(scaled_data)
+
+    # Add cluster labels to data
+    filtered_data['Cluster'] = cluster_labels
+
+    # Visualize clustering using pairplot
+    fig5 = sns.pairplot(filtered_data, hue='Cluster', palette='Set2', vars=['temp_hour', 'hum_hour', 'cnt_hour'], height=3)
+    st.pyplot(fig5)
+
+    # Display cluster centers
+    st.markdown("### Cluster Centers")
+    cluster_centers = scaler.inverse_transform(kmeans.cluster_centers_)
+    cluster_centers_df = pd.DataFrame(cluster_centers, columns=['Temperature', 'Humidity', 'Rentals'])
+    st.dataframe(cluster_centers_df)
+
