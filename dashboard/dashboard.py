@@ -3,8 +3,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-from sklearn.preprocessing import StandardScaler
-
 # Title of the dashboard
 st.title("✨ Bike Sharing Insights: Weather & Seasonal Trends")
 
@@ -22,42 +20,47 @@ data = load_data(data_url)
 # Sidebar filters for weather and season
 st.sidebar.header('🔍 Filter Data')
 
-# Filter options for temperature and humidity
-selected_temp = st.sidebar.selectbox('Select Temperature Range', ['All', 'Low', 'Medium', 'High'])
-selected_humidity = st.sidebar.selectbox('Select Humidity Range', ['All', 'Low', 'Medium', 'High'])
+# Filter options for temperature, humidity, and season
+selected_weather = st.sidebar.multiselect(
+    'Select Weather Conditions (Temperature & Humidity)', 
+    ['Low Temp', 'Medium Temp', 'High Temp', 'Low Humidity', 'Medium Humidity', 'High Humidity'], 
+    ['Low Temp', 'Medium Temp', 'High Temp', 'Low Humidity', 'Medium Humidity', 'High Humidity']
+)
 selected_season = st.sidebar.selectbox('Select Season', data['season_day'].unique())
 
-# Filter data by temperature
-if selected_temp == 'Low':
-    data = data[data['temp_hour'] < 0.3]
-elif selected_temp == 'Medium':
-    data = data[(data['temp_hour'] >= 0.3) & (data['temp_hour'] < 0.6)]
-elif selected_temp == 'High':
-    data = data[data['temp_hour'] >= 0.6]
+# Filter data based on selected options
+if 'Low Temp' in selected_weather:
+    weather_temp_filter = data[data['temp_hour'] < 0.3]
+elif 'Medium Temp' in selected_weather:
+    weather_temp_filter = data[(data['temp_hour'] >= 0.3) & (data['temp_hour'] < 0.6)]
+elif 'High Temp' in selected_weather:
+    weather_temp_filter = data[data['temp_hour'] >= 0.6]
+else:
+    weather_temp_filter = data
 
-# Filter data by humidity
-if selected_humidity == 'Low':
-    data = data[data['hum_hour'] < 50]
-elif selected_humidity == 'Medium':
-    data = data[(data['hum_hour'] >= 50) & (data['hum_hour'] < 70)]
-elif selected_humidity == 'High':
-    data = data[data['hum_hour'] >= 70]
+if 'Low Humidity' in selected_weather:
+    weather_hum_filter = weather_temp_filter[weather_temp_filter['hum_hour'] < 50]
+elif 'Medium Humidity' in selected_weather:
+    weather_hum_filter = weather_temp_filter[(weather_temp_filter['hum_hour'] >= 50) & (weather_temp_filter['hum_hour'] < 70)]
+elif 'High Humidity' in selected_weather:
+    weather_hum_filter = weather_temp_filter[weather_temp_filter['hum_hour'] >= 70]
+else:
+    weather_hum_filter = weather_temp_filter
 
 # Filter data by season
-data = data[data['season_day'] == selected_season]
+season_data = weather_hum_filter[weather_hum_filter['season_day'] == selected_season]
 
 # Check if filtered data is empty
-if data.empty:
+if season_data.empty:
     st.warning("❌ No data available for the selected filters.")
 else:
     # Question 1: Does Weather Affect Bike Rentals?
+
     st.header("☀️ Does Weather (Temperature & Humidity) Affect Bike Rentals?")
     
     # Create a scatter plot to show the relationship between temperature, humidity, and rentals
     fig, ax = plt.subplots()
-    sns.scatterplot(data=data, x='temp_hour', y='hum_hour', hue='cnt_hour', 
-                    palette='viridis', size='cnt_hour', sizes=(50, 200), 
-                    ax=ax, edgecolor='black')
+    sns.scatterplot(data=season_data, x='temp_hour', y='hum_hour', hue='cnt_hour', palette='viridis', size='cnt_hour', sizes=(50, 200), ax=ax, edgecolor='black')
     ax.set_title("Temperature & Humidity vs Rentals", fontsize=14)
     ax.set_xlabel("Temperature (Normalized)", fontsize=12)
     ax.set_ylabel("Humidity (Normalized)", fontsize=12)
@@ -65,7 +68,7 @@ else:
 
     # Display correlation between weather features and rentals
     st.subheader("📊 Correlation Between Weather and Rentals")
-    correlation_data = data[['temp_hour', 'hum_hour', 'cnt_hour']]
+    correlation_data = season_data[['temp_hour', 'hum_hour', 'cnt_hour']]
     correlation_matrix = correlation_data.corr()
 
     # Display correlation matrix
@@ -78,7 +81,7 @@ else:
     st.header("📈 Seasonal Trends in Bike Rentals")
 
     # Group data by season to analyze trends
-    season_rentals = data.groupby('season_day')['cnt_hour'].mean()
+    season_rentals = season_data.groupby('season_day')['cnt_hour'].mean()
 
     # Create an area plot to visualize the seasonal rental trends
     fig3, ax3 = plt.subplots()
@@ -89,5 +92,4 @@ else:
     st.pyplot(fig3)
 
     # Display the average rentals by season
-    avg_rentals = season_rentals.mean()
-    st.markdown(f"<h3 style='font-size: 24px;'>Average Rentals for {selected_season} Season: {avg_rentals:.2f}</h3>", unsafe_allow_html=True)
+    st.markdown(f"<h3 style='font-size: 24px;'>Average Rentals for {selected_season} Season: {season_rentals.mean():.2f}</h3>", unsafe_allow_html=True)
