@@ -12,31 +12,35 @@ url = "https://raw.githubusercontent.com/ashriazzr/submission-data-analyst-dicod
 # Membaca CSV dari URL
 df = pd.read_csv(url)
 df['dteday'] = pd.to_datetime(df['dteday'], errors='coerce')  # Pastikan kolom tanggal diformat dengan benar
-df['year'] = df['dteday'].dt.year  # Tambahkan kolom tahun
-df['month'] = df['dteday'].dt.month  # Tambahkan kolom bulan
-df['day'] = df['dteday'].dt.day  # Tambahkan kolom tanggal
+
+# Menambahkan kolom untuk Tahun, Bulan, dan Hari
+df['year'] = df['dteday'].dt.year
+df['month'] = df['dteday'].dt.month
+df['day'] = df['dteday'].dt.day
 
 # Fitur filter untuk visualisasi
 st.sidebar.header("Filter Data Visualisasi")
 
-# Filter berdasarkan rentang tahun
+# Filter berdasarkan rentang tanggal
+start_date, end_date = st.sidebar.date_input("Pilih rentang tanggal", 
+                                              [df['dteday'].min(), df['dteday'].max()])
+df = df[(df['dteday'] >= pd.to_datetime(start_date)) & 
+        (df['dteday'] <= pd.to_datetime(end_date))]
+
+# Filter berdasarkan tahun
 years = df['year'].unique()
-selected_years = st.sidebar.multiselect("Pilih Tahun", options=sorted(years), default=sorted(years))
+selected_years = st.sidebar.multiselect("Pilih Tahun", options=years, default=years)
 df = df[df['year'].isin(selected_years)]
 
-# Filter berdasarkan rentang bulan
-months = df['month'].unique()
-selected_months = st.sidebar.multiselect("Pilih Bulan", options=sorted(months), default=sorted(months))
+# Filter berdasarkan bulan
+months = range(1, 13)
+selected_months = st.sidebar.multiselect("Pilih Bulan", options=months, default=months)
 df = df[df['month'].isin(selected_months)]
 
-# Filter berdasarkan rentang tanggal
-if 'dteday' in df.columns:
-    start_date, end_date = st.sidebar.date_input(
-        "Pilih Rentang Tanggal",
-        [df['dteday'].min(), df['dteday'].max()]
-    )
-    df = df[(df['dteday'] >= pd.to_datetime(start_date)) & 
-            (df['dteday'] <= pd.to_datetime(end_date))]
+# Filter berdasarkan hari
+days = range(1, 32)
+selected_days = st.sidebar.multiselect("Pilih Hari", options=days, default=days)
+df = df[df['day'].isin(selected_days)]
 
 # Filter berdasarkan cuaca
 weather_options = df['weathersit'].unique()
