@@ -23,7 +23,7 @@ st.sidebar.header('🔍 Filter Data')
 
 # Filter options for temperature, humidity, and season
 selected_weather = st.sidebar.multiselect('Select Weather Conditions (Temperature & Humidity)', ['Low Temp', 'Medium Temp', 'High Temp', 'Low Humidity', 'Medium Humidity', 'High Humidity'], ['Low Temp', 'Medium Temp', 'High Temp', 'Low Humidity', 'Medium Humidity', 'High Humidity'])
-selected_season = st.sidebar.selectbox('Select Season', data['season_day'].unique())
+selected_season = st.sidebar.selectbox('Select Season', data['season'].unique())
 
 # Filter data based on selected options
 if 'Low Temp' in selected_weather:
@@ -45,7 +45,7 @@ else:
     weather_hum_filter = weather_temp_filter
 
 # Filter data by season
-season_data = weather_hum_filter[weather_hum_filter['season_day'] == selected_season]
+season_data = weather_hum_filter[weather_hum_filter['season'] == selected_season]
 
 # Check if filtered data is empty
 if season_data.empty:
@@ -78,7 +78,7 @@ else:
     st.header("📈 Seasonal Trends in Bike Rentals")
 
     # Group data by season to analyze trends
-    season_rentals = season_data.groupby('season_day')['cnt_hour'].mean()
+    season_rentals = season_data.groupby('season')['cnt_hour'].mean()
 
     # Create an area plot to visualize the seasonal rental trends
     fig3, ax3 = plt.subplots()
