@@ -42,6 +42,21 @@ days = range(1, 32)
 selected_days = st.sidebar.multiselect("Pilih Hari", options=days, default=days)
 df = df[df['day'].isin(selected_days)]
 
+# Filter berdasarkan jam
+hours = range(0, 24)
+selected_hours = st.sidebar.multiselect("Pilih Jam", options=hours, default=hours)
+df = df[df['hr'].isin(selected_hours)]
+
+# Filter berdasarkan hari libur
+holiday_options = df['holiday'].unique()
+selected_holiday = st.sidebar.selectbox("Pilih Hari Libur (0: Tidak, 1: Ya)", options=holiday_options)
+df = df[df['holiday'] == selected_holiday]
+
+# Filter berdasarkan hari kerja
+workingday_options = df['workingday'].unique()
+selected_workingday = st.sidebar.selectbox("Pilih Hari Kerja (0: Tidak, 1: Ya)", options=workingday_options)
+df = df[df['workingday'] == selected_workingday]
+
 # Filter berdasarkan cuaca
 weather_options = df['weathersit'].unique()
 selected_weather = st.sidebar.multiselect("Pilih Cuaca (Weather)", options=weather_options, default=weather_options)
