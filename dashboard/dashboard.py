@@ -10,8 +10,8 @@ def load_data(url):
 
 # URL dataset utama
 main_url = "https://raw.githubusercontent.com/ashriazzr/submission-data-analyst-dicoding/refs/heads/main/dashboard/all_data.csv"
-hour_url = "https://raw.githubusercontent.com/hadarah1/public/main/bike_rental_hour.csv"
-day_url = "https://raw.githubusercontent.com/hadarah1/public/main/bike_rental_day.csv"
+hour_url = "https://raw.githubusercontent.com/ashriazzr/submission-data-analyst-dicoding/refs/heads/main/data/hour.csv"
+day_url = "https://raw.githubusercontent.com/ashriazzr/submission-data-analyst-dicoding/refs/heads/main/data/day.csv"
 
 # Memuat dataset
 main_data = load_data(main_url)
