@@ -33,24 +33,48 @@ st.header("Dataset Overview")
 st.write("Preview of the dataset:")
 st.write(main_data.head())
 
-# Sidebar untuk filter
+# Sidebar untuk filter utama
 st.sidebar.header("Filter Options")
 selected_weather = st.sidebar.multiselect(
     "Select Weather Conditions:", options=main_data['weathersit'].unique(), default=main_data['weathersit'].unique()
 )
-temp_range = st.sidebar.slider("Select Temperature Range:", float(main_data['temp'].min()), float(main_data['temp'].max()), (float(main_data['temp'].min()), float(main_data['temp'].max())))
-hum_range = st.sidebar.slider("Select Humidity Range:", float(main_data['hum'].min()), float(main_data['hum'].max()), (float(main_data['hum'].min()), float(main_data['hum'].max())))
+temp_range = st.sidebar.slider(
+    "Select Temperature Range:", 
+    float(main_data['temp'].min()), 
+    float(main_data['temp'].max()), 
+    (float(main_data['temp'].min()), float(main_data['temp'].max()))
+)
+hum_range = st.sidebar.slider(
+    "Select Humidity Range:", 
+    float(main_data['hum'].min()), 
+    float(main_data['hum'].max()), 
+    (float(main_data['hum'].min()), float(main_data['hum'].max()))
+)
 
-# Filter data berdasarkan input
+# Filter data berdasarkan input utama
 filtered_data = main_data[
     (main_data['weathersit'].isin(selected_weather)) &
     (main_data['temp'].between(temp_range[0], temp_range[1])) &
     (main_data['hum'].between(hum_range[0], hum_range[1]))
 ]
 
-# Visualisasi 1: Pengaruh Cuaca terhadap Penyewaan Sepeda
-st.header("Effect of Weather on Bike Rentals")
-st.write("Scatter plot of Temperature vs. Bike Rentals:")
+# Sidebar untuk filter tambahan
+st.sidebar.header("Additional Filters")
+cnt_range = st.sidebar.slider(
+    "Select Range of Bike Rentals (cnt):",
+    int(main_data['cnt'].min()),
+    int(main_data['cnt'].max()),
+    (int(main_data['cnt'].min()), int(main_data['cnt'].max()))
+)
+
+# Filter data berdasarkan input tambahan
+filtered_data = filtered_data[
+    (filtered_data['cnt'].between(cnt_range[0], cnt_range[1]))
+]
+
+# Visualisasi 1: Pengaruh Cuaca terhadap Penyewaan Sepeda (dengan range cnt)
+st.header("Effect of Weather on Bike Rentals (Filtered by Range)")
+st.write(f"Scatter plot of Temperature vs. Bike Rentals (cnt range: {cnt_range[0]} - {cnt_range[1]}):")
 
 fig1, ax1 = plt.subplots(figsize=(8, 6))
 sns.scatterplot(
@@ -61,16 +85,12 @@ ax1.set_xlabel("Temperature (Normalized)")
 ax1.set_ylabel("Bike Rentals")
 st.pyplot(fig1)
 
-# Visualisasi 2: Tren Penyewaan Berdasarkan Musim
-st.header("Bike Rentals by Season")
-selected_season = st.sidebar.multiselect(
-    "Select Seasons:", options=main_data['season'].unique(), default=main_data['season'].unique()
-)
-season_data = main_data[main_data['season'].isin(selected_season)]
+# Visualisasi 2: Tren Penyewaan Berdasarkan Musim (dengan range cnt)
+st.header("Bike Rentals by Season (Filtered by Range)")
+st.write(f"Boxplot of Bike Rentals by Season (cnt range: {cnt_range[0]} - {cnt_range[1]}):")
 
-st.write("Boxplot of Bike Rentals by Season:")
 fig2, ax2 = plt.subplots(figsize=(8, 6))
-sns.boxplot(data=season_data, x='season', y='cnt', palette='Set3', ax=ax2)
+sns.boxplot(data=filtered_data, x='season', y='cnt', palette='Set3', ax=ax2)
 ax2.set_title("Distribution of Bike Rentals by Season")
 ax2.set_xlabel("Season")
 ax2.set_ylabel("Bike Rentals")
