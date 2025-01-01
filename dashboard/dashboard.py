@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+from sklearn.preprocessing import StandardScaler
 
 # Title of the dashboard
 st.title("✨ Bike Sharing Insights: Weather & Seasonal Trends")
@@ -21,11 +22,7 @@ data = load_data(data_url)
 st.sidebar.header('🔍 Filter Data')
 
 # Filter options for temperature, humidity, and season
-selected_weather = st.sidebar.multiselect(
-    'Select Weather Conditions (Temperature & Humidity)', 
-    ['Low Temp', 'Medium Temp', 'High Temp', 'Low Humidity', 'Medium Humidity', 'High Humidity'], 
-    ['Low Temp', 'Medium Temp', 'High Temp', 'Low Humidity', 'Medium Humidity', 'High Humidity']
-)
+selected_weather = st.sidebar.multiselect('Select Weather Conditions (Temperature & Humidity)', ['Low Temp', 'Medium Temp', 'High Temp', 'Low Humidity', 'Medium Humidity', 'High Humidity'], ['Low Temp', 'Medium Temp', 'High Temp', 'Low Humidity', 'Medium Humidity', 'High Humidity'])
 selected_season = st.sidebar.selectbox('Select Season', data['season_day'].unique())
 
 # Filter data based on selected options
