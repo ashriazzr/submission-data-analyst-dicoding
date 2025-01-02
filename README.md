@@ -37,7 +37,7 @@ submission-data-analyst-dicoding/
 ├───requirements.txt         
 └───url.txt                  
 
-
+```
 ## Installation
 
 1. Clone this repository to your local machine:
