@@ -22,17 +22,20 @@ Proyek ini melibatkan analisis dan visualisasi Dataset Bike Sharing, dengan menc
 - `data/`: Directory containing the raw CSV data files.
 - `notebook.ipynb`: This file is used to perform data analysis.
 - `README.md`: This documentation file.
-submission-data-analyst-dicoding
-├───dashboard
-|   ├───all_data.csv         # The dataset used for dashboard visualizations
-|   └───dashboard.py         # Python script that generates the dashboard
-├───data
-|   ├───day.csv              # Daily data used for analysis
-|   └───hour.csv             # Hourly data used for analysis
-├───notebook.ipynb           # Jupyter Notebook with data analysis and insights
-├───README.md                # Project description and documentation
-├───requirements.txt         # List of required libraries and dependencies
-└───url.txt                  # External resources or URLs related to the project
+
+
+```plaintext
+submission-data-analyst-dicoding/
+├───dashboard/
+│   ├───all_data.csv         
+│   └───dashboard.py        
+├───data/
+│   ├───day.csv              
+│   └───hour.csv             
+├───notebook.ipynb           
+├───README.md                
+├───requirements.txt         
+└───url.txt                  
 
 
 ## Installation
