@@ -23,6 +23,18 @@ Proyek ini melibatkan analisis dan visualisasi Dataset Bike Sharing, dengan menc
 - `notebook.ipynb`: This file is used to perform data analysis.
 - `README.md`: This documentation file.
 
+- submission-data-analyst-dicoding
+├───dashboard
+| ├───all_data.csv
+| └───dashboard.py
+├───data
+| ├───day.csv
+| └───hour.csv
+├───notebook.ipynb
+├───README.md
+└───requirements.txt
+└───url.txt
+
 ## Installation
 
 1. Clone this repository to your local machine:
