@@ -49,5 +49,17 @@ elif category_filter == 'Tren Musiman 🍁❄️':
     ax.set_ylabel("Rata-Rata Penyewaan 🚲", fontsize=14)
     ax.set_xticklabels(['Spring 🌸', 'Summer ☀️', 'Autumn 🍂', 'Winter ❄️'], fontsize=12)
 
-# Menampilkan grafik
 st.pyplot(fig)
+
+if category_filter == 'Pengaruh Cuaca ☀️🌧️':
+    st.write("""
+        🌞 Dari grafik di atas, kita dapat melihat bahwa jumlah penyewaan sepeda lebih tinggi pada cuaca cerah 
+        dan menurun saat cuaca berawan atau hujan. Oleh karena itu, cuaca cerah cenderung meningkatkan minat 
+        orang untuk menyewa sepeda.
+    """)
+elif category_filter == 'Tren Musiman 🍁❄️':
+    st.write("""
+        🍂 Berdasarkan grafik, terlihat bahwa jumlah penyewaan sepeda paling tinggi pada musim panas ☀️ dan musim gugur 🍁, 
+        sementara musim dingin ❄️ memiliki jumlah penyewaan terendah. Hal ini menunjukkan bahwa faktor musim 
+        sangat mempengaruhi kebiasaan penyewaan sepeda.
+    """)
