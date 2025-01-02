@@ -3,73 +3,48 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-st.title("✨ Bike Sharing Insights: Weather & Seasonal Trends")
+df = pd.read_csv('all_data.csv')
 
-@st.cache_data
-def load_data(url):
-    return pd.read_csv(url)
+st.title("Analisis Penyewaan Sepeda Berdasarkan Cuaca dan Musim")
+st.write("""
+    Aplikasi ini menunjukkan bagaimana cuaca dan musim memengaruhi jumlah penyewaan sepeda. 
+    Gunakan filter untuk memilih kategori yang ingin dianalisis.
+""")
 
-data_url = "https://raw.githubusercontent.com/ashriazzr/submission-data-analyst-dicoding/refs/heads/main/dashboard/all_data.csv"
+category_filter = st.selectbox("Pilih Kategori Analisis", ['Weather Impact', 'Seasonal Trend'])
 
-data = load_data(data_url)
-st.sidebar.header('🔍 Filter Data')
+filtered_data = df[df['Category'] == category_filter]
 
-selected_weather = st.sidebar.multiselect('Select Weather Conditions (Temperature & Humidity)', ['Low Temp', 'Medium Temp', 'High Temp', 'Low Humidity', 'Medium Humidity', 'High Humidity'], ['Low Temp', 'Medium Temp', 'High Temp', 'Low Humidity', 'Medium Humidity', 'High Humidity'])
-selected_season = st.sidebar.selectbox('Select Season', data['season'].unique())
+st.subheader(f"Data {category_filter}")
+st.write(filtered_data)
 
-if 'Low Temp' in selected_weather:
-    weather_temp_filter = data[data['temp'] < 0.3]
-elif 'Medium Temp' in selected_weather:
-    weather_temp_filter = data[(data['temp'] >= 0.3) & (data['temp'] < 0.6)]
-elif 'High Temp' in selected_weather:
-    weather_temp_filter = data[data['temp'] >= 0.6]
-else:
-    weather_temp_filter = data
+st.subheader(f"Visualisasi {category_filter}")
 
-if 'Low Humidity' in selected_weather:
-    weather_hum_filter = weather_temp_filter[weather_temp_filter['hum'] < 50]
-elif 'Medium Humidity' in selected_weather:
-    weather_hum_filter = weather_temp_filter[(weather_temp_filter['hum'] >= 50) & (weather_temp_filter['hum'] < 70)]
-elif 'High Humidity' in selected_weather:
-    weather_hum_filter = weather_temp_filter[weather_temp_filter['hum'] >= 70]
-else:
-    weather_hum_filter = weather_temp_filter
+fig, ax = plt.subplots(figsize=(10, 6))
 
-# Filter data by season
-season_data = weather_hum_filter[weather_hum_filter['season'] == selected_season]
-
-if season_data.empty:
-    st.warning("❌ No data available for the selected filters.")
-else:
-
-    st.header("☀️ Does Weather (Temperature & Humidity) Affect Bike Rentals?")
+if category_filter == 'Weather Impact':
+    sns.barplot(x='Weather_Situation', y='Average_Rentals', data=filtered_data, ax=ax)
+    ax.set_title("Pengaruh Cuaca Terhadap Penyewaan Sepeda")
+    ax.set_xlabel("Situasi Cuaca")
+    ax.set_ylabel("Rata-Rata Penyewaan")
+    ax.set_xticklabels(['Cerah', 'Berawan', 'Hujan'])
     
-    fig, ax = plt.subplots()
-    sns.scatterplot(data=season_data, x='temp', y='hum', hue='cnt', palette='viridis', size='cnt', sizes=(50, 200), ax=ax, edgecolor='black')
-    ax.set_title("Temperature & Humidity vs Rentals", fontsize=14)
-    ax.set_xlabel("Temperature (Normalized)", fontsize=12)
-    ax.set_ylabel("Humidity (Normalized)", fontsize=12)
-    st.pyplot(fig)
+elif category_filter == 'Seasonal Trend':
+    sns.barplot(x='Season', y='Average_Rentals', data=filtered_data, ax=ax)
+    ax.set_title("Tren Penyewaan Sepeda Berdasarkan Musim")
+    ax.set_xlabel("Musim")
+    ax.set_ylabel("Rata-Rata Penyewaan")
+    ax.set_xticklabels(['Musim Semi', 'Musim Panas', 'Musim Gugur', 'Musim Dingin'])
 
-    st.subheader("📊 Correlation Between Weather and Rentals")
-    correlation_data = season_data[['temp', 'hum', 'cnt']]
-    correlation_matrix = correlation_data.corr()
+st.pyplot(fig)
 
-    fig2, ax2 = plt.subplots(figsize=(6, 4))
-    sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt='.2f', ax=ax2)
-    ax2.set_title("Correlation Matrix", fontsize=14)
-    st.pyplot(fig2)
-
-    # Question 2: Seasonal Trends in Bike Rentals
-    st.header("📈 Seasonal Trends in Bike Rentals")
-
-    season_rentals = season_data.groupby('season')['cnt'].mean()
-
-    fig3, ax3 = plt.subplots()
-    season_rentals.plot(kind='area', ax=ax3, color='skyblue', alpha=0.6, linewidth=3)
-    ax3.set_title("Seasonal Bike Rental Trends", fontsize=14)
-    ax3.set_xlabel("Season", fontsize=12)
-    ax3.set_ylabel("Average Bike Rentals", fontsize=12)
-    st.pyplot(fig3)
-
-    st.markdown(f"<h3 style='font-size: 24px;'>Average Rentals for {selected_season} Season: {season_rentals.mean():.2f}</h3>", unsafe_allow_html=True)
+if category_filter == 'Weather Impact':
+    st.write("""
+        Dari grafik di atas, kita dapat melihat bahwa jumlah penyewaan sepeda lebih tinggi pada cuaca cerah 
+        (situasi cuaca 1) dan menurun saat cuaca berawan (situasi cuaca 2) atau hujan (situasi cuaca 3).
+    """)
+elif category_filter == 'Seasonal Trend':
+    st.write("""
+        Berdasarkan grafik, terlihat bahwa jumlah penyewaan sepeda paling tinggi pada musim panas (season 2) 
+        dan musim gugur (season 3), sementara musim dingin (season 4) memiliki jumlah penyewaan terendah.
+    """)
