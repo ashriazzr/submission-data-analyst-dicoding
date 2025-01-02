@@ -3,7 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-df = pd.read_csv('all_data.csv')
+df = pd.read_csv('https://raw.githubusercontent.com/ashriazzr/submission-data-analyst-dicoding/refs/heads/main/dashboard/all_data.csv')
 
 st.title("Analisis Penyewaan Sepeda Berdasarkan Cuaca dan Musim")
 st.write("""
