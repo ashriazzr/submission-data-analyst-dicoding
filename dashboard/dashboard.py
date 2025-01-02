@@ -3,10 +3,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# Membaca data dari CSV
 df = pd.read_csv('https://raw.githubusercontent.com/ashriazzr/submission-data-analyst-dicoding/refs/heads/main/dashboard/all_data.csv')
 
-# Mengganti nilai numerik di kolom Season dengan nama musim
 season_mapping = {
     1: 'Spring 🌸',
     2: 'Summer ☀️',
@@ -15,24 +13,22 @@ season_mapping = {
 }
 df['Season_Name'] = df['Season'].map(season_mapping)
 
-# Menampilkan struktur data setelah perubahan
-st.write("Data yang telah dimodifikasi:")
-st.write(df[['Weather_Situation', 'Average_Rentals', 'Category', 'Season_Name']].head())
-
-# Filter kategori yang dipilih
 category_filter = st.selectbox("🔍 Pilih Kategori Analisis", ['Pengaruh Cuaca ☀️🌧️', 'Tren Musiman 🍁❄️'])
+location_filter = st.selectbox("🌍 Pilih Lokasi", df['Location'].unique())
+weather_filter = st.selectbox("☁️ Pilih Situasi Cuaca", df['Weather_Situation'].unique())
 
-# Menyaring data berdasarkan kategori yang dipilih
-if category_filter == 'Pengaruh Cuaca ☀️🌧️':
-    filtered_data = df[df['Category'] == 'Weather Impact']
-elif category_filter == 'Tren Musiman 🍁❄️':
-    filtered_data = df[df['Category'] == 'Seasonal Trend']
+filtered_data = df[
+    (df['Category'] == 'Weather Impact' if category_filter == 'Pengaruh Cuaca ☀️🌧️' else df['Category'] == 'Seasonal Trend') & 
+    (df['Location'] == location_filter) & 
+    (df['Weather_Situation'] == weather_filter)
+]
 
-# Menampilkan data yang difilter
-st.subheader(f"📋 Data {category_filter}")
+st.subheader(f"📋 Data {category_filter} untuk Lokasi {location_filter} pada Cuaca {weather_filter}")
 st.write(filtered_data)
 
-# Visualisasi berdasarkan kategori yang dipilih
+st.subheader("📊 Ringkasan Statistik")
+st.write(filtered_data.describe())
+
 fig, ax = plt.subplots(figsize=(10, 6))
 
 if category_filter == 'Pengaruh Cuaca ☀️🌧️':
@@ -63,3 +59,12 @@ elif category_filter == 'Tren Musiman 🍁❄️':
         sementara musim dingin ❄️ memiliki jumlah penyewaan terendah. Hal ini menunjukkan bahwa faktor musim 
         sangat mempengaruhi kebiasaan penyewaan sepeda.
     """)
+
+st.subheader("🔍 Insight Lainnya")
+st.write("""
+    Berdasarkan tren musiman, kita dapat menyimpulkan bahwa faktor cuaca dan musim sangat berpengaruh 
+    terhadap minat masyarakat untuk menyewa sepeda. Semakin cerah cuaca atau semakin hangat musimnya, 
+    semakin banyak orang yang memilih untuk menyewa sepeda.
+""")
+
+st.write("📡 Data ini sudah ter-deploy secara online. Untuk lebih lanjut, silakan akses halaman visualisasi.")
