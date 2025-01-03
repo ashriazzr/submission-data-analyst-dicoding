@@ -8,13 +8,9 @@ from sklearn.preprocessing import StandardScaler
 # Judul dashboard
 st.title("✨ Bike Sharing Dashboard with Clustering")
 
-# Memuat data dengan cache untuk efisiensi
-@st.cache_data
-def load_data(file):
-    return pd.read_csv(file)
 
 # Memuat dataset
-main_data = load_data('dashboard/main_data.csv')
+main_data = load_data('https://raw.githubusercontent.com/ashriazzr/submission-data-analyst-dicoding/refs/heads/main/dashboard/all_data.csv')
 
 # Sidebar untuk filter
 st.sidebar.header('🔍 Filter Options')
