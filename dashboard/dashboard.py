@@ -8,10 +8,7 @@ from sklearn.preprocessing import StandardScaler
 # Judul dashboard
 st.title("✨ Bike Sharing Dashboard with Clustering")
 
-
-import pandas as pd
-import streamlit as st
-
+# Fungsi untuk memuat data
 @st.cache_data
 def load_data(url):
     """
@@ -34,21 +31,20 @@ if main_data.empty:
 else:
     st.success("Data loaded successfully!")
 
-
 # Sidebar untuk filter
 st.sidebar.header('🔍 Filter Options')
 
 # Filter berdasarkan musim dan bulan
 season_filter = st.sidebar.multiselect('Select Season', main_data['season'].unique(), main_data['season'].unique())
-month_filter = st.sidebar.multiselect('Select Month', main_data['mnth'].unique(), main_data['mnth'].unique())
+month_filter = st.sidebar.multiselect('Select Month', main_data['month'].unique(), main_data['month'].unique())
 
 # Tombol untuk mereset filter
 if st.sidebar.button("Reset Filters"):
     season_filter = main_data['season'].unique()
-    month_filter = main_data['mnth'].unique()
+    month_filter = main_data['month'].unique()
 
 # Filter data sesuai pilihan pengguna
-filtered_data = main_data[(main_data['season'].isin(season_filter)) & (main_data['mnth'].isin(month_filter))]
+filtered_data = main_data[(main_data['season'].isin(season_filter)) & (main_data['month'].isin(month_filter))]
 
 # Cek ketersediaan data setelah memfilter
 if filtered_data.empty:
@@ -56,15 +52,15 @@ if filtered_data.empty:
 else:
     # Analisis Dampak Suhu dan Kelembapan pada Penyewaan Sepeda
     st.header("🌞 Impact of Temperature and Humidity on Bike Rentals")
-    summer_data = filtered_data[(filtered_data['mnth'] == 7) | (filtered_data['mnth'] == 8)]
+    summer_data = filtered_data[(filtered_data['month'] == 7) | (filtered_data['month'] == 8)]
 
     # Menampilkan penyewaan maksimum
-    max_rentals = summer_data['cnt'].max()
+    max_rentals = summer_data['total_count'].max()
     st.markdown(f"<h3 style='font-size: 24px;'>Max Rentals: {max_rentals}</h3>", unsafe_allow_html=True)
 
     # Scatter plot suhu terhadap penyewaan sepeda
     fig, ax = plt.subplots()
-    sns.scatterplot(data=summer_data, x='temp', y='cnt', ax=ax, color='orange', s=100, edgecolor='black')
+    sns.scatterplot(data=summer_data, x='temp', y='total_count', ax=ax, color='orange', s=100, edgecolor='black')
     ax.set_title("Temperature vs Bike Rentals", fontsize=14)
     ax.set_xlabel("Temperature (Normalized)", fontsize=12)
     ax.set_ylabel("Number of Bike Rentals", fontsize=12)
@@ -72,7 +68,7 @@ else:
 
     # Analisis Tren Penyewaan Sepeda Bulanan
     st.header("📈 Monthly Bike Rental Trend")
-    monthly_rentals = filtered_data.groupby('mnth')['cnt'].mean()
+    monthly_rentals = filtered_data.groupby('month')['total_count'].mean()
 
     # Line chart tren bulanan
     fig2, ax2 = plt.subplots()
@@ -84,8 +80,8 @@ else:
 
     # Analisis Penyewaan Berdasarkan Hari Kerja
     st.header("☀️ Bike Rentals by Working Days")
-    total_weekend_rentals = filtered_data[filtered_data['workingday'] == 0]['cnt'].sum()
-    total_weekday_rentals = filtered_data[filtered_data['workingday'] == 1]['cnt'].sum()
+    total_weekend_rentals = filtered_data[filtered_data['workingday'] == 0]['total_count'].sum()
+    total_weekday_rentals = filtered_data[filtered_data['workingday'] == 1]['total_count'].sum()
 
     st.markdown(f"<h3 style='font-size: 24px;'>Total Rentals on Weekends: {total_weekend_rentals}</h3>", unsafe_allow_html=True)
     st.markdown(f"<h3 style='font-size: 24px;'>Total Rentals on Working Days: {total_weekday_rentals}</h3>", unsafe_allow_html=True)
@@ -101,8 +97,8 @@ else:
     # Heatmap untuk rata-rata penyewaan
     st.header("🌧️ Average Bike Rentals by Temperature and Humidity")
     filtered_data['temp_group'] = pd.cut(filtered_data['temp'], bins=3, labels=['Low', 'Medium', 'High'])
-    filtered_data['hum_group'] = pd.cut(filtered_data['hum'], bins=3, labels=['Low', 'Medium', 'High'])
-    avg_rental_by_temp_hum = filtered_data.groupby(['temp_group', 'hum_group'], observed=True)['cnt'].mean().unstack()
+    filtered_data['humidity_group'] = pd.cut(filtered_data['humidity'], bins=3, labels=['Low', 'Medium', 'High'])
+    avg_rental_by_temp_hum = filtered_data.groupby(['temp_group', 'humidity_group'], observed=True)['total_count'].mean().unstack()
 
     # Heatmap
     fig4, ax4 = plt.subplots(figsize=(10, 6))
@@ -116,7 +112,7 @@ else:
     st.header("📊 Clustering: Grouping Bike Rentals by Features")
 
     # Clustering data
-    cluster_data = filtered_data[['temp', 'hum', 'cnt']].dropna()
+    cluster_data = filtered_data[['temp', 'humidity', 'total_count']].dropna()
     scaler = StandardScaler()
     scaled_cluster_data = scaler.fit_transform(cluster_data)
 
@@ -126,7 +122,7 @@ else:
 
     # Visualisasi clustering
     fig5, ax5 = plt.subplots()
-    sns.scatterplot(data=filtered_data, x='temp', y='hum', hue='Cluster', palette='Set1', s=100, edgecolor='black', ax=ax5)
+    sns.scatterplot(data=filtered_data, x='temp', y='humidity', hue='Cluster', palette='Set1', s=100, edgecolor='black', ax=ax5)
     ax5.set_title("Clusters of Bike Rentals Based on Features", fontsize=14)
     ax5.set_xlabel("Temperature (Normalized)", fontsize=12)
     ax5.set_ylabel("Humidity (Normalized)", fontsize=12)
