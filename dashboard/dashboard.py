@@ -33,22 +33,21 @@ st.header("🌞 Impact of Weather on Bike Rentals")
 # Memeriksa kolom yang ada dalam dataset
 st.write(main_data.columns)
 
-# Scatter plot untuk Temperature vs Rentals, pastikan 'weather' ada
-if 'weather' in main_data.columns:
+# Scatter plot untuk Temperature vs Rentals, menggunakan 'weathersit' untuk hue
+if 'weathersit' in main_data.columns:
     fig, ax = plt.subplots(figsize=(10, 6))
-    sns.scatterplot(data=main_data, x='temp', y='cnt', hue='weather', palette='coolwarm', ax=ax)
-    ax.set_title("Temperature vs Bike Rentals by Weather", fontsize=14)
+    sns.scatterplot(data=main_data, x='temp', y='cnt', hue='weathersit', palette='coolwarm', ax=ax)
+    ax.set_title("Temperature vs Bike Rentals by Weather Situation", fontsize=14)
     ax.set_xlabel("Temperature (Normalized)", fontsize=12)
     ax.set_ylabel("Number of Bike Rentals", fontsize=12)
     st.pyplot(fig)
 else:
-    st.warning("The 'weather' column is missing or invalid. Please check your data.")
+    st.warning("The 'weathersit' column is missing or invalid. Please check your data.")
 
-
-# Scatter plot untuk Humidity vs Rentals
+# Scatter plot untuk Humidity vs Rentals, menggunakan 'weathersit' untuk hue
 fig2, ax2 = plt.subplots(figsize=(10, 6))
-sns.scatterplot(data=main_data, x='hum', y='cnt', hue='weather', palette='coolwarm', ax=ax2)
-ax2.set_title("Humidity vs Bike Rentals by Weather", fontsize=14)
+sns.scatterplot(data=main_data, x='hum', y='cnt', hue='weathersit', palette='coolwarm', ax=ax2)
+ax2.set_title("Humidity vs Bike Rentals by Weather Situation", fontsize=14)
 ax2.set_xlabel("Humidity (Normalized)", fontsize=12)
 ax2.set_ylabel("Number of Bike Rentals", fontsize=12)
 st.pyplot(fig2)
@@ -72,7 +71,7 @@ st.header("📈 Seasonal Bike Rental Trends")
 # Grouping berdasarkan musim dan menghitung rata-rata penyewaan per musim
 seasonal_rentals = main_data.groupby('season')['cnt'].mean()
 
-# Line plot tren penyewaan per musim
+# Bar plot tren penyewaan per musim
 fig4, ax4 = plt.subplots(figsize=(10, 6))
 seasonal_rentals.plot(kind='bar', ax=ax4, color='skyblue', edgecolor='black')
 ax4.set_title("Average Bike Rentals by Season", fontsize=14)
