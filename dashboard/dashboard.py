@@ -5,7 +5,7 @@ import seaborn as sns
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 
-st.title("✨ Bike Sharing Dashboard with Clustering")
+st.title("✨ Bike Sharing Dashboard with Clustering🌞 ")
 
 @st.cache_data
 def load_data(url):
@@ -41,7 +41,7 @@ filtered_data = main_data[(main_data['season'].isin(season_filter)) & (main_data
 if filtered_data.empty:
     st.warning("❌ No data available for the selected filters. Please select different options.")
 else:
-    st.header("🌞 Impact of Temperature and Humidity on Bike Rentals")
+    st.header("Impact of Temperature and Humidity on Bike Rentals")
     summer_data = filtered_data[(filtered_data['mnth'] == 7) | (filtered_data['mnth'] == 8)]
 
     max_rentals = summer_data['cnt'].max()
@@ -54,7 +54,7 @@ else:
     ax.set_ylabel("Number of Bike Rentals", fontsize=12)
     st.pyplot(fig)
 
-    st.header("📈 Monthly Bike Rental Trend")
+    st.header("Monthly Bike Rental Trend")
     monthly_rentals = filtered_data.groupby('mnth')['cnt'].mean()
 
     fig2, ax2 = plt.subplots()
@@ -64,7 +64,7 @@ else:
     ax2.set_ylabel("Average Bike Rentals", fontsize=12)
     st.pyplot(fig2)
 
-    st.header("☀️ Bike Rentals by Working Days")
+    st.header("Bike Rentals by Working Days")
     total_weekend_rentals = filtered_data[filtered_data['workingday'] == 0]['cnt'].sum()
     total_weekday_rentals = filtered_data[filtered_data['workingday'] == 1]['cnt'].sum()
 
