@@ -9,8 +9,30 @@ from sklearn.preprocessing import StandardScaler
 st.title("✨ Bike Sharing Dashboard with Clustering")
 
 
+import pandas as pd
+import streamlit as st
+
+@st.cache_data
+def load_data(url):
+    """
+    Function to load data from a given URL.
+    Caches the data to optimize performance.
+    """
+    try:
+        data = pd.read_csv(url)
+        return data
+    except Exception as e:
+        st.error(f"Failed to load data: {e}")
+        return pd.DataFrame()
+
 # Memuat dataset
 main_data = load_data('https://raw.githubusercontent.com/ashriazzr/submission-data-analyst-dicoding/refs/heads/main/dashboard/all_data.csv')
+
+# Cek apakah data berhasil dimuat
+if main_data.empty:
+    st.error("Dataset is empty. Please check the URL or data source.")
+else:
+    st.success("Data loaded successfully!")
 
 # Sidebar untuk filter
 st.sidebar.header('🔍 Filter Options')
