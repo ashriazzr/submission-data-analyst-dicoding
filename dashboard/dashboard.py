@@ -30,13 +30,20 @@ st.title("✨ Bike Sharing Dashboard")
 # Memisahkan data untuk analisis cuaca
 st.header("🌞 Impact of Weather on Bike Rentals")
 
-# Scatter plot untuk Temperature vs Rentals
-fig, ax = plt.subplots(figsize=(10, 6))
-sns.scatterplot(data=main_data, x='temp', y='cnt', hue='weather', palette='coolwarm', ax=ax)
-ax.set_title("Temperature vs Bike Rentals by Weather", fontsize=14)
-ax.set_xlabel("Temperature (Normalized)", fontsize=12)
-ax.set_ylabel("Number of Bike Rentals", fontsize=12)
-st.pyplot(fig)
+# Memeriksa kolom yang ada dalam dataset
+st.write(main_data.columns)
+
+# Scatter plot untuk Temperature vs Rentals, pastikan 'weather' ada
+if 'weather' in main_data.columns:
+    fig, ax = plt.subplots(figsize=(10, 6))
+    sns.scatterplot(data=main_data, x='temp', y='cnt', hue='weather', palette='coolwarm', ax=ax)
+    ax.set_title("Temperature vs Bike Rentals by Weather", fontsize=14)
+    ax.set_xlabel("Temperature (Normalized)", fontsize=12)
+    ax.set_ylabel("Number of Bike Rentals", fontsize=12)
+    st.pyplot(fig)
+else:
+    st.warning("The 'weather' column is missing or invalid. Please check your data.")
+
 
 # Scatter plot untuk Humidity vs Rentals
 fig2, ax2 = plt.subplots(figsize=(10, 6))
