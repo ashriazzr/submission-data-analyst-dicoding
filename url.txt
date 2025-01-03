@@ -1,5 +1,1 @@
-<<<<<<< HEAD
-=======
-https://github.com/marceloreis/HTI/tree/master
-https://github.com/ashriazzr/submission-data-analyst-dicoding
->>>>>>> 40a13a6454c8df6e22152dd66e37999a1d16ddf7
+https://submission-data-analyst-dicoding-24.streamlit.app/
